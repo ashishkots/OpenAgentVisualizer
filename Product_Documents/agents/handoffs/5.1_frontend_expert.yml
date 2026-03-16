@@ -1,0 +1,168 @@
+handoff:
+  id: "5.1_frontend_expert"
+  timestamp: "2026-03-16T12:00:00Z"
+  from_agent: "Frontend Expert"
+  from_stage: "5.1"
+  to_agent: "Code Reviewer"
+  to_stage: "5.3"
+  status: "complete"
+
+  summary: |
+    Complete frontend implementation plan for OpenAgentVisualizer -- a gamified virtual
+    world webapp for AI agent management. The plan covers all 10 sections required:
+    project setup, folder structure, state management, PixiJS canvas, Rive animation,
+    component library, routing, real-time data layer, charts/dashboards, and testing.
+
+  artifacts:
+    - path: "Product_Documents/10_Frontend_Expert/Frontend_Implementation.md"
+      type: "implementation_plan"
+      description: "Comprehensive frontend implementation plan with code snippets"
+      line_count: 4200
+
+  key_decisions:
+    - decision: "Vite 5 + React 18 + TypeScript 5.4 as build stack"
+      rationale: "Fast HMR, ESBuild bundling, concurrent rendering, full type safety"
+
+    - decision: "Three-layer state: TanStack Query (server), Zustand (UI), XState v5 (per-agent FSM)"
+      rationale: "Clean separation -- server cache vs global UI vs per-entity lifecycle machines. Avoids monolithic Redux."
+
+    - decision: "PixiJS v8 via @pixi/react for the virtual world canvas"
+      rationale: "60fps with 100+ agents, GPU-accelerated WebGL2, declarative React bindings"
+
+    - decision: "Rive for agent avatar animations (not Lottie)"
+      rationale: "State-machine-driven, 10-50KB per agent vs 200KB+ Lottie, runtime inputs controllable from code"
+
+    - decision: "Viewport culling + LOD system + 50-instance Rive cap"
+      rationale: "Performance budget: 60fps at 50 agents full fidelity, 30fps at 200 agents reduced"
+
+    - decision: "WebSocket for agent events, SSE for metric streams"
+      rationale: "WS for bidirectional state changes; SSE for unidirectional metric feeds; both with reconnect"
+
+    - decision: "Recharts for simple charts, ECharts for high-density time-series"
+      rationale: "Recharts is React-native and fast for sparklines/bars; ECharts handles 100K+ data points with WebGL"
+
+    - decision: "6-phase component build order: foundation -> layout -> common -> data -> gamification -> canvas"
+      rationale: "Each phase builds on the previous; no forward dependencies"
+
+    - decision: "Vitest + Testing Library for unit/component; Playwright for E2E; custom benchmark for FPS"
+      rationale: "Fast parallel tests, jsdom for DOM components, real browser for canvas perf"
+
+  tech_stack:
+    framework: "React 18.3"
+    language: "TypeScript 5.4"
+    build: "Vite 5"
+    canvas: "PixiJS v8 + @pixi/react"
+    animation: "Rive 2.x + GSAP 3.x"
+    state: "Zustand 4.x + XState v5 + TanStack Query v5"
+    css: "Tailwind CSS 3.x"
+    charts: "Recharts 2.x + ECharts 5.x"
+    topology: "React Flow 12.x"
+    router: "React Router 6.x"
+    forms: "React Hook Form 7.x + Zod 3.x"
+    testing: "Vitest 1.x + Testing Library + MSW 2.x"
+
+  file_count: 150
+  folder_count: 25
+
+  implementation_phases:
+    - phase: 1
+      name: "Foundation"
+      duration: "Week 1"
+      files: ["lib/*", "types/*", "stores/auth.store.ts", "stores/ui.store.ts", "providers/*"]
+
+    - phase: 2
+      name: "Layout Shell"
+      duration: "Week 1-2"
+      files: ["components/layout/*", "components/navigation/NavItem.tsx", "routes.tsx"]
+
+    - phase: 3
+      name: "Common Components"
+      duration: "Week 2"
+      files: ["components/common/*"]
+
+    - phase: 4
+      name: "Data Display"
+      duration: "Week 2-3"
+      files: ["components/data-display/*", "components/gamification/*"]
+
+    - phase: 5
+      name: "Charts"
+      duration: "Week 3"
+      files: ["components/charts/*"]
+
+    - phase: 6
+      name: "Gamification"
+      duration: "Week 3"
+      files: ["components/gamification/*"]
+
+    - phase: 7
+      name: "PixiJS Canvas"
+      duration: "Week 3-4"
+      files: ["canvas/*"]
+
+    - phase: 8
+      name: "Rive Integration"
+      duration: "Week 4"
+      files: ["lib/rive-*.ts", "canvas/AgentRiveAvatar.tsx", "canvas/ActivityBubble.tsx"]
+
+    - phase: 9
+      name: "Pages"
+      duration: "Week 4-5"
+      files: ["pages/*"]
+
+    - phase: 10
+      name: "Real-Time + Polish"
+      duration: "Week 5-6"
+      files: ["lib/ws-client.ts", "lib/sse-client.ts", "components/providers/WebSocketProvider.tsx"]
+
+  performance_targets:
+    - metric: "60fps with 50 agents at full fidelity (LOD HIGH)"
+    - metric: "60fps with 150 agents at LOD MEDIUM"
+    - metric: "60fps with 500 agents at LOD MINIMAL"
+    - metric: "30fps with 200 agents at reduced fidelity"
+    - metric: "First Contentful Paint < 1.5s"
+    - metric: "Time to Interactive < 3s"
+    - metric: "Bundle size < 500KB initial (before lazy loads)"
+    - metric: "Max active Rive instances: 50"
+
+  testing_coverage:
+    unit: "75% line coverage minimum"
+    component: "All common components + data display components"
+    state_machines: "All XState machines: full state transition coverage"
+    canvas_systems: "CullingSystem, LODSystem, CameraController, ForceLayout"
+    integration: "Auth flow, WebSocket dispatch, TanStack Query invalidation"
+    performance: "FPS benchmarks via Playwright on GPU runner"
+
+  dependencies_upstream:
+    - "System Architecture (4.1) -- API contracts, tech stack, WebSocket protocol"
+    - "Design System Spec (3.3) -- tokens, component specs, pattern library"
+    - "UI Design System (3.1) -- color palette, typography, spacing, component anatomy"
+    - "UX Design Spec (2.1) -- user flows, information architecture, interaction patterns"
+    - "Visualization Spec (2.2) -- zone map, agent states, camera system, LOD levels"
+    - "Animation Spec (2.3) -- Rive state machines, blend trees, particle specs"
+
+  dependencies_downstream:
+    - "Code Reviewer (5.3) -- review all source code"
+    - "QA Engineer (5.4) -- execute test suite, performance benchmarks"
+    - "DevOps (Convergence) -- Docker build, Nginx config, CI/CD pipeline"
+
+  risks:
+    - risk: "Rive .riv asset files not yet created by design team"
+      mitigation: "Use colored circles as placeholders until .riv files delivered; swap is a single prop change per agent"
+
+    - risk: "PixiJS v8 @pixi/react bindings may have breaking changes"
+      mitigation: "Pin exact versions in package.json; test upgrade path quarterly"
+
+    - risk: "50+ WebSocket connections on a single page may saturate bandwidth"
+      mitigation: "Single WS connection per workspace; server fans out via Redis Pub/Sub"
+
+    - risk: "ECharts bundle size (~800KB) may bloat initial load"
+      mitigation: "Lazy-loaded via route-level code splitting; only loaded on dashboard pages"
+
+  notes: |
+    The implementation plan is fully implementation-ready with code snippets for
+    every major module. The 10-phase build order ensures no circular dependencies.
+    All design tokens from the Design System Spec are mapped into tailwind.config.js.
+    The XState agent machine mirrors the Rive state machine 1:1, ensuring visual
+    state always matches logical state. Performance systems (culling, LOD, object pool)
+    are designed to meet the 60fps/50-agent target from the Visualization Spec.

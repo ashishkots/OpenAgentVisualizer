@@ -1,0 +1,176 @@
+handoff:
+  id: "oav-2.3-motion-graphics"
+  from_stage: "2.3"
+  from_agent: "Motion Graphics Agent"
+  to_stage: "2.2a"
+  to_agent: "Frontend Expert"
+  product: "OpenAgentVisualizer"
+  date: "2026-03-16"
+  status: "complete"
+
+artifact:
+  type: "animation_specification"
+  path: "Product_Documents/05_Motion_Graphics/Animation_Spec.md"
+  format: "markdown"
+  word_count: 9800
+  sections: 11
+  appendices: 2
+
+summary: >
+  Comprehensive animation specification for OpenAgentVisualizer covering all motion design
+  across three rendering layers: Rive state machines for agent character animations on the
+  PixiJS canvas, GSAP-driven UI micro-animations in the React DOM layer, and a custom
+  PixiJS particle system for data flow visualization, celebrations, and error effects.
+  The spec defines 11 agent animation states with full blend trees, 10 categories of UI
+  micro-animations, 5 particle system types with a hard budget of 500 particles and LOD
+  culling, GSAP transition specifications for all page and view mode switches, Tone.js
+  sound design integration, and a complete token system for durations, easings, colors,
+  scales, particles, and z-indices.
+
+deliverables:
+  - name: "Animation Philosophy"
+    description: "Three laws of OAV motion: motion encodes state, motion respects attention, motion degrades gracefully. Professional Mode behavior defined."
+    status: "complete"
+
+  - name: "Rive State Machine Specifications"
+    description: "Full agent lifecycle state machine with 12 states, all transitions and triggers mapped to SDK event types, blend trees for idle/working/error with continuous input parameters (speed, intensity, energy, mood, tier, severity), file organization for 6 tier .riv files plus effects and shared assets, file size budget of 250KB total."
+    status: "complete"
+
+  - name: "Agent Character Animations"
+    description: "10 animation states fully specified: idle (6 variants with random timers), working (3 variants selected by tool type with progress ring), thinking (3 simultaneous variants with pulsing glow), communicating (speech bubble, turn-toward, data beam), error (4 variants with severity blend), overloaded (sweat drops, frantic motion, task stack), sleeping (ZZZ bubbles, slump, deep breathing), celebrating (confetti, fist pump, sparkles with rarity scaling), leveling up (3000ms sequence with glow, size pulse, particle burst, badge appear, tier swap), terminated (1500ms fade with ghost trail). Each state has duration, easing, loop behavior, and per-tier differences documented."
+    status: "complete"
+
+  - name: "UI Micro-Animations"
+    description: "10 categories: page transitions (forward/back/tab/first-load), panel open/close (sidebar/detail/bottom with content stagger), button states (hover/press/loading/success/error), toggle/switch, tooltip appear/disappear, modal entrance/exit, tab switching with direction awareness, list item enter/exit with stagger cap at 15 items, skeleton loading shimmer, progress bar fill (determinate/indeterminate/success/error)."
+    status: "complete"
+
+  - name: "Data Visualization Animations"
+    description: "Chart data entry for line/bar/scatter charts, real-time chart updates with smooth interpolation and batched rendering, metric counter roll-up with proportional duration, sparkline draw animation with live update, pie/donut chart segment transitions with hover expand."
+    status: "complete"
+
+  - name: "Notification Animations"
+    description: "Achievement unlock (2000ms sequence with badge fly-in, particle burst, rarity-scaled intensity, legendary full-screen override), level up (3000ms full-screen with golden flash, number increment, title type-in, fanfare particles, tier boundary handling), alert (slide-in with border pulse and stack behavior), error (red shake with persistent dismiss), success (checkmark draw-on with mini confetti)."
+    status: "complete"
+
+  - name: "Particle Systems"
+    description: "5 particle types: data flow (color-coded by message type, bezier path, bidirectional support), token consumption (budget-proportional emission, color shift as budget depletes), cost accumulation (coin particles arcing to cost meter), celebration (confetti with physics, sparkles, stars), error (red sparks, smoke for severe errors). Global budget of 500 particles with 4 LOD tiers and priority-based culling. Object pooling with zero runtime allocation."
+    status: "complete"
+
+  - name: "Transition Specifications (GSAP)"
+    description: "Page-to-page transitions, view mode switches (world/dashboard/trace with mini-map and blur effects), layout shifts (sidebar collapse, panel resize with snap), 8 named easing curves with GSAP and CSS equivalents, custom spring curve for avatar movement."
+    status: "complete"
+
+  - name: "Performance Guidelines"
+    description: "16.6ms frame budget breakdown across 5 subsystems, GPU vs CPU decision matrix, will-change management rules, reduced motion mode with 4-level user override, mobile performance tiers (detected via startup benchmark), distance-based LOD with 4 tiers and zoom-based fallback."
+    status: "complete"
+
+  - name: "Sound Design Integration"
+    description: "Tone.js synthesized audio for 12 event types, muted by default with opt-in, 4 volume categories with independent sliders, spatial audio panning based on agent canvas position, 8-voice polyphony limit with priority-based voice stealing, 100ms debounce, lazy-loaded 45KB bundle."
+    status: "complete"
+
+  - name: "Animation Tokens"
+    description: "Complete token system: 8 duration tokens (0ms-3000ms), 9 easing tokens with GSAP and CSS values, 25 color tokens (state colors, tier colors, rarity colors), 10 scale tokens, 12 particle tokens, 7 z-index layer tokens."
+    status: "complete"
+
+dependencies_consumed:
+  - source: "PRD (Stage 1.1)"
+    artifacts_used:
+      - "Feature 1: Virtual World Canvas (PixiJS rendering, 60fps target, 50 agent scale)"
+      - "Feature 2: Real-Time Agent Status (5 visual states, animated transitions)"
+      - "Feature 3: Task Assignment Interface (drag-drop, handoff visualization)"
+      - "Feature 5: Loop Detection & Cost Alerts (red flash, banner, sound cue)"
+      - "Feature 6: Session Replay (playback speed control)"
+      - "Feature 7: XP & Leveling System (floating XP, celebration, level persist)"
+
+  - source: "Gamification System Design (Stage 1.2)"
+    artifacts_used:
+      - "Section 2: XP & Leveling System (XP formula, level thresholds, titles)"
+      - "Section 3: Achievement & Badge System (rarity tiers, notification priority)"
+      - "Section 5: Agent Avatars & Visual Progression (6 tier descriptions, 6 animation states, cosmetic rewards)"
+      - "Section 1.3: Professional Mode behavior"
+
+  - source: "Agent Integration Architecture (Stage 1.3)"
+    artifacts_used:
+      - "Section 2: Universal Agent Event Schema (all event types mapped to animation triggers)"
+      - "Section 3: Agent Lifecycle State Machine (10 states, transitions, trigger events)"
+
+dependencies_produced:
+  - target: "Frontend Expert (Stage 2.2a)"
+    artifacts:
+      - "Complete Rive state machine specification for implementation"
+      - "GSAP animation code patterns for all UI transitions"
+      - "Particle system architecture with budgets and LOD"
+      - "Animation token configuration for src/config/animation-tokens.ts"
+      - "Performance budget and degradation rules"
+      - "Reduced motion implementation requirements"
+
+  - target: "QA Engineer (Stage 2.4)"
+    artifacts:
+      - "Animation timing specifications for visual regression testing"
+      - "Performance budget thresholds for automated performance tests"
+      - "Reduced motion behavior matrix for accessibility testing"
+      - "Particle budget limits for load testing"
+
+  - target: "Sound Designer"
+    artifacts:
+      - "Tone.js synthesis specifications per event type"
+      - "Volume levels and spatial audio panning rules"
+      - "Sound trigger mapping to animation events"
+
+gate_checklist:
+  - item: "All agent lifecycle states from Architecture doc have corresponding animations"
+    status: "pass"
+    notes: "10 architecture states + 2 additional states (Overloaded, Sleeping) = 12 total"
+
+  - item: "All gamification events have animations"
+    status: "pass"
+    notes: "XP award, level up, achievement unlock (5 rarities), streak, leaderboard reorder"
+
+  - item: "Professional Mode fallbacks defined for all gamification animations"
+    status: "pass"
+    notes: "Section 1.4 defines full mapping table"
+
+  - item: "Performance budget fits 60fps with 50 agents"
+    status: "pass"
+    notes: "Frame budget breakdown in Section 9.1: 15ms used, 1.6ms headroom"
+
+  - item: "Reduced motion mode covers all animations"
+    status: "pass"
+    notes: "Section 9.4 maps every animation category to its reduced-motion replacement"
+
+  - item: "Particle system has hard budget and LOD culling"
+    status: "pass"
+    notes: "500 max with 4 tiers, priority-based culling, emission rate halving at <50fps"
+
+  - item: "Mobile constraints addressed"
+    status: "pass"
+    notes: "Section 9.5: 3 device tiers with specific limits for Rive instances, particles, and canvas resolution"
+
+  - item: "All animations map to specific SDK events or user interactions"
+    status: "pass"
+    notes: "Rive inputs directly reference event_type strings from Agent Integration Architecture Section 2"
+
+  - item: "Token system is complete and referenceable"
+    status: "pass"
+    notes: "Section 11: durations, easings, colors, scales, particles, z-indices"
+
+  - item: "Implementation priority and effort estimates provided"
+    status: "pass"
+    notes: "Appendix B: 31 developer-days across P0/P1/P2/P3 priorities"
+
+risks:
+  - risk: "Rive WASM renderer may have memory leaks with 50+ simultaneous instances"
+    mitigation: "LOD system pauses off-screen instances; monitor heap in QA; fallback to CSS-only at LOD 2+"
+    severity: "medium"
+
+  - risk: "GSAP license requires GreenSock Club membership for commercial use of some plugins"
+    mitigation: "Core GSAP is free; CustomEase requires paid license. Budget $200/yr or implement custom cubic-bezier fallback"
+    severity: "low"
+
+  - risk: "Tone.js AudioContext may be blocked by browser autoplay policies"
+    mitigation: "Audio is muted by default; user must click enable. AudioContext created on first user gesture per Web Audio API spec"
+    severity: "low"
+
+  - risk: "Particle system object pooling may cause GC pressure if pool size is insufficient"
+    mitigation: "Pool pre-allocates 500 objects at startup; force-kill lowest-priority particles when exhausted; monitor GC pauses in performance tests"
+    severity: "medium"

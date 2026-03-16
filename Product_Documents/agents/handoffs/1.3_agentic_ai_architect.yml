@@ -1,0 +1,59 @@
+handoff:
+  from: agentic_ai_architect
+  to: [solution_architect, backend_expert, fullstack_expert, frontend_expert]
+  stage: "1.3"
+  status: complete
+  artifacts:
+    - path: Product_Documents/09_Agentic_AI_Architect/Agent_Integration_Architecture.md
+      type: architecture_spec
+      description: >
+        Complete agent integration architecture covering: integration philosophy (framework-agnostic,
+        OTLP-first, 3-line SDK), universal agent event schema (19 event types with full payloads),
+        agent lifecycle state machine (10 states with XState v5 actor mapping), framework-specific
+        adapters (LangChain/LangGraph, CrewAI, AutoGen, OpenAI Assistants/Agents SDK, Anthropic Claude,
+        custom HTTP), Python SDK design (OAVTracer class, decorators, context managers, async, offline mode),
+        Node.js/TypeScript SDK design (parallel API surface, Vercel AI SDK adapter), OTLP receiver
+        (HTTP + gRPC, GenAI semconv mapping, rate limiting), real-time event pipeline (Redis Streams,
+        WebSocket fan-out, backpressure), agent metrics computation (9 metrics with formulas),
+        multi-agent topology detection (graph construction, handoff chains, Tarjan's SCC loop detection,
+        cost propagation), security model (API key auth, TLS, workspace isolation, PII masking),
+        and scalability design (100K events/sec target, horizontal scaling, 3-tier storage).
+  gate: A
+  gate_criteria_met:
+    - Agent integration architecture defined with 12 major sections
+    - Universal event schema specified with 19 event types and full JSON payloads
+    - SDK APIs designed for Python (OAVTracer, decorators, context managers, async, offline mode)
+    - SDK APIs designed for Node.js/TypeScript (parallel surface, Vercel AI adapter, decorators)
+    - Framework adapters specified for 6 frameworks (LangChain, CrewAI, AutoGen, OpenAI, Anthropic, custom HTTP)
+    - OTLP receiver designed with HTTP and gRPC endpoints and GenAI semantic convention mapping
+    - Agent lifecycle state machine with 10 states, transition table, and XState v5 actor model
+    - Real-time event pipeline architecture with Redis Streams, WebSocket broadcasting, and backpressure
+    - Agent metrics computation formulas for 9 metrics including composite gamification score
+    - Multi-agent topology detection with loop detection (Tarjan SCC) and cost propagation
+    - Security model with API key auth, PII masking, workspace isolation, and rate limiting
+    - Scalability design targeting 100K events/sec with horizontal scaling and 3-tier storage
+  dependencies_for_next_stages:
+    solution_architect:
+      - Review event pipeline architecture and confirm alignment with overall system design
+      - Validate PostgreSQL partitioning strategy and Redis Streams usage
+      - Confirm WebSocket scaling approach for 50K concurrent connections
+    backend_expert:
+      - Implement OTLP receiver endpoints (HTTP + gRPC)
+      - Implement event ingestion API and Redis Streams producer
+      - Implement event processor consumer with state machine updates
+      - Build framework adapter base class and LangChain adapter first
+      - Implement PII masking pipeline
+    fullstack_expert:
+      - Implement Python SDK (openagentvisualizer package)
+      - Implement Node.js SDK (@openagentvisualizer/sdk package)
+      - Build SDK test harness with mock agent sessions
+    frontend_expert:
+      - Consume WebSocket event stream for real-time world updates
+      - Implement XState v5 actor instances per agent for state management
+      - Map agent states to Rive/PixiJS animations per state machine spec
+      - Build topology graph view using React Flow/Cytoscape.js
+  notes:
+    - Model pricing table (Appendix A) must be maintained as a server-side config updated weekly
+    - SDK size budgets defined in Appendix B; enforce via CI bundle size checks
+    - Loop detection ($47K incident) is the #1 marketing story; prioritize in MVP
+    - Offline buffer replay is critical for CI/CD pipeline integration (batch replay after test runs)

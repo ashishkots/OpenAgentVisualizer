@@ -1,0 +1,157 @@
+# OpenAgentVisualizer — Solution Architect Handoff
+# Stage 4.1 → Stage 2.2a (Frontend Expert) + Stage 2.2b (Backend Expert)
+
+handoff:
+  id: "oav-handoff-4.1-solution-architect"
+  from_agent: "Solution Architect"
+  from_stage: "4.1"
+  to_agents:
+    - agent: "Frontend Expert"
+      stage: "2.2a"
+    - agent: "Backend Expert"
+      stage: "2.2b"
+  product: "OpenAgentVisualizer"
+  date: "2026-03-16"
+  status: "complete"
+
+artifact:
+  type: "system_architecture_document"
+  path: "Product_Documents/08_Solution_Architect/System_Architecture.md"
+  version: "1.0"
+  sections:
+    - "Architecture Overview"
+    - "Technology Stack"
+    - "System Architecture Diagram"
+    - "Database Schema"
+    - "API Design"
+    - "Real-Time Architecture"
+    - "Event Processing Pipeline"
+    - "Caching Strategy"
+    - "Security Architecture"
+    - "Scalability and Performance"
+    - "Deployment Architecture"
+    - "Data Flow Diagrams"
+    - "Migration Strategy"
+    - "Technical Risks and Mitigations"
+
+dependencies_consumed:
+  - stage: "1.1"
+    agent: "Product Manager"
+    artifact: "Product_Documents/01_Product_Manager/PRD_OpenAgentVisualizer.md"
+    consumed_sections:
+      - "Feature Tiers (MVP, V1, V2)"
+      - "Technical Requirements"
+      - "Pricing Strategy (tier-based rate limits)"
+
+  - stage: "1.2"
+    agent: "Gamification Expert"
+    artifact: "Product_Documents/04_Gamification_Expert/Gamification_System_Design.md"
+    consumed_sections:
+      - "XP System Design (formulas, levels, multipliers)"
+      - "Achievement System (38 achievements with criteria)"
+      - "Leaderboard System (scoring algorithm)"
+      - "Quest System (daily, weekly, epic)"
+      - "Virtual Economy (Agent Coins, Prism Gems)"
+
+  - stage: "1.3"
+    agent: "Agentic AI Architect"
+    artifact: "Product_Documents/09_Agentic_AI_Architect/Agent_Integration_Architecture.md"
+    consumed_sections:
+      - "Data Ingestion Layer (OTLP, SDK)"
+      - "Event Schema Design (lifecycle, task, communication, resource, anomaly)"
+      - "Real-Time Event Pipeline (Redis Streams, consumer groups)"
+      - "SDK Design (Python, Node.js, REST)"
+      - "Security Model (API keys, tenant isolation)"
+
+  - stage: "2.1"
+    agent: "UX Designer"
+    artifact: "Product_Documents/02_UX_Designer/UX_Design_Spec.md"
+    consumed_sections:
+      - "User Flows (onboarding, world exploration, task assignment, dashboard, alerts)"
+      - "Information Architecture (navigation model, page hierarchy)"
+      - "Interaction Patterns (progressive disclosure, keyboard shortcuts)"
+
+  - stage: "3.3"
+    agent: "Design System"
+    artifact: "Product_Documents/14_Design_System/Design_System_Spec.md"
+    consumed_sections:
+      - "Token Architecture (colors, typography, spacing)"
+      - "Component Specification (agent cards, panels, charts)"
+      - "Motion System (transition timings)"
+
+decisions_made:
+  - decision: "Event-driven microservices with CQRS"
+    rationale: "Separates hot write path (event ingestion) from read path (dashboard queries) for independent scaling"
+
+  - decision: "Redis Streams as event bus (not Kafka)"
+    rationale: "Lower operational complexity for initial scale; built-in consumer groups; sub-millisecond latency; adequate for 50K events/second target"
+
+  - decision: "TimescaleDB extension on PostgreSQL 16 (not separate TSDB)"
+    rationale: "Single database engine reduces ops burden; hypertable compression and continuous aggregates cover time-series needs; native SQL compatibility"
+
+  - decision: "XState v5 actors for per-agent frontend state"
+    rationale: "1:1 mapping between backend agent lifecycle and frontend state machine; Inspect API feeds PixiJS directly; formally verifiable states"
+
+  - decision: "PixiJS v8 WebGL with LOD system"
+    rationale: "60fps target with 100+ agents requires GPU acceleration; LOD system reduces render cost at low zoom levels; fallback to Canvas2D for older hardware"
+
+  - decision: "Rive for avatar animations (not Lottie)"
+    rationale: "State-machine-driven animations match agent lifecycle states; 5KB file size per avatar; runtime state blending; 120fps capable"
+
+  - decision: "WebSocket for events + SSE for metrics"
+    rationale: "WebSocket for bidirectional agent events and commands; SSE for unidirectional metric feeds with automatic reconnection; SSE works through corporate proxies"
+
+  - decision: "bcrypt 4.0.1 pinned"
+    rationale: "passlib 1.7.4 incompatible with bcrypt >= 5.0.0; known fix from CLAUDE.md"
+
+  - decision: "Celery for async tasks (not in-process)"
+    rationale: "Gamification calculations (achievement checks, leaderboard recomputation, quest generation) must not block API request cycle; Celery beat handles periodic scheduling"
+
+  - decision: "Docker Compose with 12 services"
+    rationale: "Local-first development per build pipeline policy; single docker-compose up --build to run the full system; Nginx handles routing and TLS"
+
+implementation_notes_for_frontend:
+  - "React 18 with TypeScript 5.4+, Vite bundler"
+  - "PixiJS v8 via @pixi/react for world canvas; LOD system with 4 detail levels"
+  - "Rive 2.x for agent avatar state-machine animations"
+  - "XState v5 for per-agent actor model; Zustand for global UI state; TanStack Query for server state"
+  - "React Flow for topology/agent relationship graphs"
+  - "Recharts for standard dashboard charts; ECharts for high-density time-series"
+  - "GSAP for UI transitions and celebration animations"
+  - "Tailwind CSS with design tokens from Design System Spec"
+  - "WebSocket client with auto-reconnect (exponential backoff 1-30s)"
+  - "Performance budget: <200KB initial JS, 60fps canvas, <200MB memory"
+  - "Command palette (Cmd+K) for global search"
+  - "Professional Mode toggle changes rendering but not data model"
+
+implementation_notes_for_backend:
+  - "FastAPI with uvicorn, Python 3.12, SQLAlchemy 2.0 async"
+  - "PostgreSQL 16 with TimescaleDB extension"
+  - "Redis 7.2 for Streams (event bus), Pub/Sub (WebSocket fanout), Cache (6 layers)"
+  - "Celery 5.4 with Redis broker for async gamification tasks"
+  - "OTLP HTTP receiver on port 4318; gRPC receiver on port 4317"
+  - "JWT auth with 15-min access tokens, 7-day refresh tokens (rotation)"
+  - "API keys with SHA-256 hashing, prefix-based identification"
+  - "bcrypt==4.0.1, email-validator==2.2.0 pinned in requirements.txt"
+  - "Never use 'metadata' as SQLAlchemy column name"
+  - "seed_default_user() on startup: kotsai@gmail.com / kots@123"
+  - "Alembic migrations: 10 scripts covering full schema"
+  - "Event processing: 3 consumer groups (persist, aggregate, fanout)"
+  - "Rate limiting per tier via Redis token bucket"
+  - "PII redaction in ingestion pipeline before storage"
+
+acceptance_criteria:
+  - "Complete database schema with all tables, indexes, and TimescaleDB policies defined"
+  - "Full API design with endpoints, request/response schemas, auth requirements, and rate limits"
+  - "Real-time architecture covering WebSocket lifecycle, Redis fan-out, SSE channels"
+  - "Event processing pipeline from SDK to storage to frontend with all consumer groups"
+  - "Caching strategy with 6 layers, TTL policies, and invalidation patterns"
+  - "Security architecture with auth flows, RBAC matrix, API key management, encryption"
+  - "Scalability targets with horizontal scaling strategy and connection pooling"
+  - "Docker Compose with all 12 services configured"
+  - "Nginx reverse proxy configuration for all routes"
+  - "Alembic migration plan with 10 migration scripts"
+  - "Data flow diagrams for 5 critical paths"
+  - "14 technical risks identified with mitigations and contingency plans"
+
+gate_status: "PASSED — Architecture document complete and implementation-ready for parallel frontend and backend development"

@@ -1,0 +1,137 @@
+handoff:
+  from: visualization_expert
+  to: [frontend_expert, backend_expert, code_reviewer, qa_engineer, motion_graphics]
+  stage: "2.2"
+  status: complete
+  artifacts:
+    - path: Product_Documents/07_Visualization_Expert/Visualization_Spec.md
+      type: visualization_specification
+      description: >
+        Complete visualization specification for OpenAgentVisualizer covering 10 major sections:
+        (1) Visualization philosophy -- agents as living entities, progressive disclosure through zoom,
+        ambient awareness over alert fatigue, dual-mode rendering (gamified vs professional), performance-first;
+        (2) Virtual world design -- isometric office metaphor with 9 zones (Lobby, Library, Open Floor,
+        Meeting Rooms, Review Room, Manager Office, Break Room, Server Room, Archive), 4000x3000px logical
+        canvas, 64px grid, force-directed micro-layout per zone, camera system with pan/zoom 1x-10x with
+        focal zoom and momentum panning, day/night cycle tied to activity ratio (5 levels from midday to
+        deep_night), weather effects tied to error rate (sunny/partly_cloudy/overcast/rain/storm);
+        (3) Agent avatar design -- 9-layer composite sprite (shadow through floating notifications),
+        13 visual states (idle, initializing, thinking, executing, communicating, waiting, error, recovering,
+        complete, terminated, leveling_up, overloaded, sleeping) with full animation specs per state,
+        Rive state machine names, customization options (12 colors, 5 shapes, 10 accessories, 5 border
+        styles, 5 themes, custom icon upload), size/scale encoding by activity score;
+        (4) Data visualization patterns -- 60-second sparklines (token burn, cost, latency) rendered in
+        PixiJS, agent-to-agent communication lines with bezier paths and flowing particles (5 per message,
+        200px/s, color-coded by type, trail effect), circular task progress rings, multi-channel error
+        visualization (red pulse, shake, shockwave, zone-level, world-level), cost burn rate flame metaphor
+        (5 intensity levels from ember to inferno with particle specs), token energy bar with 4-tier
+        color coding;
+        (5) Dashboard chart specifications -- 7 chart types fully specified: token usage area chart
+        (Recharts), cost treemap (ECharts), task completion bar chart with targets (Recharts), quality
+        score violin plot (ECharts), activity heatmap calendar (ECharts), response time candlestick
+        (ECharts), error rate bubble chart (ECharts), with library selection rules;
+        (6) Topology visualization -- React Flow for <200 nodes / Cytoscape.js for 200+, node and edge
+        design specs, 4 layout algorithms (force-directed, hierarchical, circular, grid), handoff chain
+        rendering with timeline Gantt view, loop detection highlighting (4 severity levels with red cycles,
+        cost counters, alert banners, minimap indicators), force-directed layout with manual pinning;
+        (7) Color system -- semantic palette (6 colors), extended data palette (8 series), agent type
+        color coding (9 roles), status color mapping (10 states), WCAG 2.1 AA validated combinations,
+        color-blind safe alternatives with secondary encoding, dark mode and light mode palettes;
+        (8) Real-time animation specs -- 60fps targets for canvas/Rive/particles, 30fps for charts/topology,
+        particle system specs (500 max active, GPU-accelerated ParticleContainer, message/XP/celebration
+        particles), smooth metric interpolation (500ms counters, 300ms percentages, 400ms currency),
+        state transition sequence (exit 200ms, crossfade 150ms, entry 200ms, ring 300ms, movement 800-1200ms),
+        per-element performance budgets with total budget validation;
+        (9) Minimap and navigation -- 200x150px corner overlay updated every 500ms via RenderTexture,
+        error agents highlighted as larger red dots, fog of war for collapsed regions, quick-jump search
+        (Cmd+K with fuzzy match and state filters), agent list sidebar with sort/filter, bookmarked
+        views (20 max, keyboard shortcuts 1-9);
+        (10) Scalability visualization -- 6 scale tiers (1-10 through 500+), zone-based and role-based
+        clustering with auto-cluster algorithm, 3-tier LOD system (full fidelity 0.3ms, simplified 0.07ms,
+        dot 0.015ms per agent per frame), LOD assignment logic based on viewport distance and zoom,
+        semantic zoom with 5 detail levels and animated transitions between levels.
+        Plus 3 appendices: technology version pinning, Rive asset requirements for motion designers,
+        and production performance monitoring metrics with alert thresholds.
+  gate: B
+  gate_criteria_met:
+    - Visualization philosophy defined with 5 principles and technology stack alignment
+    - Virtual world designed with 9 functional zones, spatial positioning algorithm, and zone capacities
+    - Camera system specified with 6 zoom levels, pan/zoom controls, viewport culling
+    - Day/night cycle and weather effects tied to real operational metrics
+    - 13 agent visual states fully specified with colors, animations, Rive state names, and effects
+    - Avatar customization system with 6 categories of user-configurable options
+    - Size/scale encoding formula maps activity level to visual prominence
+    - 6 data visualization patterns specified (sparklines, communication lines, progress indicators, error viz, cost burn flames, energy bars)
+    - 7 dashboard chart types fully specified with library selection, dimensions, colors, interactions
+    - Topology visualization with React Flow/Cytoscape.js, 4 layout algorithms, manual pinning
+    - Handoff chain visualization with timeline Gantt view
+    - Loop detection highlighting with 4 severity levels and multi-channel alerting
+    - Semantic color palette with WCAG 2.1 AA contrast validation and color-blind alternatives
+    - Dark mode and light mode palettes with element-level color specifications
+    - Animation frame rate targets and per-element performance budgets validated
+    - Particle effect systems fully specified (message, XP, celebration) with max counts and GPU costs
+    - Minimap design with error highlighting, fog of war, quick-jump search, bookmarks
+    - Scalability strategy covering 1 to 500+ agents with LOD, clustering, and semantic zoom
+    - Rive asset requirements defined for motion design team (5 files, 25+ states)
+    - Production performance monitoring metrics and alert thresholds specified
+  dependencies_for_next_stages:
+    frontend_expert:
+      - Implement PixiJS 8 world canvas with 9-zone layout and 64px grid system
+      - Implement camera system (pan, zoom 1x-10x, focal zoom, viewport culling)
+      - Implement agent avatar composite sprites with 9-layer rendering pipeline
+      - Integrate Rive runtime for agent state animations (requires motion designer assets)
+      - Implement LOD system with 3 tiers and automatic LOD assignment
+      - Implement particle systems (message flow, XP rewards, celebrations) using ParticleContainer
+      - Implement day/night cycle and weather effects tied to backend metrics
+      - Implement semantic zoom with animated transitions between detail levels
+      - Implement minimap with RenderTexture, error highlights, and viewport drag
+      - Implement clustering/grouping for 100+ agent scaling
+      - Implement all 7 dashboard charts using Recharts and Apache ECharts
+      - Implement topology view with React Flow (< 200 nodes) and Cytoscape.js (200+ nodes)
+      - Implement loop detection highlighting per specification
+      - Implement search bar (Cmd+K), agent list sidebar, and bookmarked views
+      - Apply dark/light mode color palettes and accessibility color-blind mode
+    backend_expert:
+      - Provide WebSocket event stream with agent state transitions for real-time rendering
+      - Provide aggregated metrics (activity ratio, error rate, latency ratio) for day/night and weather
+      - Provide loop detection events with cycle nodes, iteration count, and cost
+      - Provide topology graph data (nodes and edges) with message counts
+      - Provide agent metrics for sparklines (token burn rate, cost, latency) at 2-5 second intervals
+      - Provide zone assignment data or allow frontend to compute from agent state/role
+    motion_graphics:
+      - Create agent_avatar.riv with 14 state machine states per Appendix B
+      - Create weather_effects.riv with 4 states
+      - Create particle_templates.riv with 5 particle types
+      - Create ui_transitions.riv with 4 transition types
+      - Create badge_animations.riv with 3 animation types
+    code_reviewer:
+      - Review PixiJS rendering pipeline for memory leaks (sprite disposal, texture management)
+      - Review LOD system for correct activation thresholds
+      - Review particle system for proper cleanup and max count enforcement
+      - Review WebSocket event batching for frame-aligned updates
+      - Validate color contrast ratios against WCAG 2.1 AA programmatically
+      - Review performance monitoring integration for production readiness
+    qa_engineer:
+      - Test canvas rendering at all 6 zoom levels with 10, 50, 100, and 200 agents
+      - Verify LOD transitions are smooth (no pop-in, no flicker)
+      - Test all 13 visual states with correct colors, animations, and effects
+      - Verify particle effects respect max count limits (500 world total)
+      - Test day/night cycle transitions with varying activity ratios
+      - Test weather effects with varying error rates
+      - Test clustering behavior at 100+ agents
+      - Verify semantic zoom transitions between all 5 detail levels
+      - Test minimap accuracy (agent positions, error highlights, viewport indicator)
+      - Test accessibility mode (color-blind alternatives, reduced motion)
+      - Validate frame rate targets (60fps at 50 agents, 30fps at 200 agents)
+      - Test all 7 dashboard chart types with sample data and edge cases
+      - Test topology view with React Flow and Cytoscape.js at varying node counts
+      - Test loop detection highlighting at all 4 severity levels
+  notes:
+    - PixiJS 8 with WebGL2 is the primary rendering engine; do not use Canvas2D fallback for MVP
+    - Rive assets are a blocking dependency for full avatar animations; use placeholder sprite sheets until available
+    - The $47,000 loop incident is the primary marketing story; loop detection visualization must be visually dramatic
+    - Performance budgets are hard constraints; any element exceeding its budget must be optimized or demoted to lower LOD
+    - Professional Mode uses the same layout and data binding but swaps asset sets and disables particle/glow effects
+    - Weather and day/night effects can be toggled off by users for reduced distraction
+    - Minimap rendering at 500ms intervals (not per-frame) is critical for performance at scale
+    - All colors are specified in hex; the frontend must implement runtime theme switching without page reload

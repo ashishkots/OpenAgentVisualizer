@@ -1,0 +1,139 @@
+# OpenAgentVisualizer — Backend Expert Handoff
+# Stage 5.2 → Stage 5.3 (Code Reviewer)
+
+handoff:
+  from_stage: "5.2"
+  from_role: "Backend Expert"
+  to_stage: "5.3"
+  to_role: "Code Reviewer"
+  product: "OpenAgentVisualizer"
+  date: "2026-03-16"
+  status: "complete"
+
+deliverables:
+  - path: "Product_Documents/11_Backend_Expert/Backend_Implementation.md"
+    type: "implementation_plan"
+    description: "Comprehensive backend implementation plan covering all 10 sections"
+    sections:
+      - "1. Project Setup — FastAPI 0.110+, Python 3.12, full requirements.txt, Pydantic Settings config"
+      - "2. Folder Structure — Complete app/ directory tree with 60+ files and responsibilities"
+      - "3. Database Layer — All 20+ SQLAlchemy 2.0 models, Alembic migrations, TimescaleDB hypertables, asyncpg pooling, repository pattern"
+      - "4. API Implementation — Router organization, Pydantic schemas, DI patterns, rate limiting, error handling"
+      - "5. Authentication & Authorization — JWT access/refresh, bcrypt 4.0.1, OAuth2 Google/GitHub, RBAC, API keys, default user seed"
+      - "6. Event Ingestion Pipeline — OTLP HTTP receiver, protobuf parser, PII detection/masking, Redis Streams producer, dead letter queue"
+      - "7. Real-Time Services — WebSocket manager with connection registry, Redis pub/sub fan-out, SSE metrics endpoint, heartbeat keepalive"
+      - "8. Gamification Engine — XP calculation (master formula with all multipliers), achievement evaluation, leaderboard computation/caching, quest generation"
+      - "9. Background Tasks — Celery worker config, beat schedule, persist writer (Redis Streams consumer), alert evaluation, data retention cleanup"
+      - "10. Testing Strategy — pytest-asyncio setup, test fixtures, Factory Boy factories, endpoint tests, WebSocket tests, integration tests"
+
+dependencies_consumed:
+  - stage: "4.1"
+    role: "Solution Architect"
+    artifact: "System_Architecture.md"
+    used_for: "Database schema (20+ tables), API contracts, technology stack, real-time architecture"
+
+  - stage: "1.3"
+    role: "Agentic AI Architect"
+    artifact: "Agent_Integration_Architecture.md"
+    used_for: "OTLP receiver design, event schema, SDK integration patterns, framework adapters"
+
+  - stage: "1.2"
+    role: "Gamification Expert"
+    artifact: "Gamification_System_Design.md"
+    used_for: "XP formulas, achievement criteria, leaderboard scoring algorithm, quest templates"
+
+  - stage: "1.1"
+    role: "Product Manager"
+    artifact: "PRD_OpenAgentVisualizer.md"
+    used_for: "Feature requirements, user stories, pricing tiers, default credentials"
+
+key_decisions:
+  - decision: "Repository pattern for all database access"
+    rationale: "Separates query logic from service layer, enables easier testing with mock repositories"
+
+  - decision: "Redis Streams for event bus instead of Kafka"
+    rationale: "Per architecture doc — lower latency, simpler ops, built-in consumer groups, sufficient for initial scale"
+
+  - decision: "Celery with Redis broker for background tasks"
+    rationale: "Mature Python task queue, supports periodic beat scheduling for gamification jobs"
+
+  - decision: "Composite primary keys on hypertables (id + time column)"
+    rationale: "TimescaleDB requires the time-partition column in the primary key for hypertable creation"
+
+  - decision: "bcrypt==4.0.1 pinned"
+    rationale: "passlib 1.7.4 incompatible with bcrypt >= 5.0.0 — per CLAUDE.md known fixes"
+
+  - decision: "Sliding window rate limiter via Redis sorted sets"
+    rationale: "More accurate than fixed window, handles burst traffic gracefully"
+
+  - decision: "PII detection runs in the hot ingestion path"
+    rationale: "Must mask sensitive data before it reaches Redis Streams or TimescaleDB — cannot rely on post-hoc cleanup"
+
+  - decision: "Separate persist_writer process (not Celery task)"
+    rationale: "Continuous stream consumer needs to run indefinitely with low latency — Celery's task model adds unnecessary overhead"
+
+models_implemented:
+  standard_tables:
+    - "User (users)"
+    - "Workspace (workspaces)"
+    - "WorkspaceMember (workspace_members)"
+    - "Agent (agents)"
+    - "AgentSession (agent_sessions)"
+    - "AgentState (agent_states)"
+    - "Task (tasks)"
+    - "TaskAssignment (task_assignments)"
+    - "TaskResult (task_results)"
+    - "Achievement (achievements)"
+    - "UserAchievement (user_achievements)"
+    - "XPLedger (xp_ledger)"
+    - "LeaderboardSnapshot (leaderboard_snapshots)"
+    - "AlertRule (alert_rules)"
+    - "Alert (alerts)"
+    - "Notification (notifications)"
+    - "APIKey (api_keys)"
+  hypertables:
+    - "Event (events) — daily chunks, 7-day compression, 90-day retention"
+    - "Span (spans) — daily chunks, 7-day compression, 90-day retention"
+    - "MetricsRaw (metrics_raw) — hourly chunks, 1-day compression, 7-day retention"
+    - "AuditLog (audit_log) — weekly chunks, 30-day compression, 1-year retention"
+  continuous_aggregates:
+    - "metrics_1min"
+    - "metrics_1hour"
+    - "metrics_1day"
+    - "agent_daily_summary"
+
+api_endpoints_count: 40+
+routers:
+  - "auth — register, login, refresh, oauth/{provider}, oauth/{provider}/callback"
+  - "users — GET/PUT profile, preferences"
+  - "workspaces — CRUD, members, settings"
+  - "agents — CRUD, heartbeat, state change"
+  - "tasks — CRUD, assignment, result submission"
+  - "traces — bulk ingest, query, session replay"
+  - "metrics — query aggregated, SSE stream"
+  - "achievements — list all, agent achievements"
+  - "leaderboard — rankings by time window"
+  - "quests — daily/weekly/epic quests"
+  - "alerts — rules CRUD, alert history, acknowledge"
+  - "notifications — list, mark read"
+  - "api-keys — CRUD"
+  - "dashboard — workspace overview aggregates"
+  - "otlp_receiver — POST /v1/traces (OTLP HTTP)"
+  - "websocket — WS /ws/{workspace_id}"
+  - "health — GET /health, /ready"
+
+test_coverage_targets:
+  unit_tests: "XP calculation, quality multipliers, level computation, streak bonuses, tier names"
+  api_tests: "All CRUD endpoints, auth flow, error cases, rate limiting"
+  websocket_tests: "Connection, authentication, subscribe/unsubscribe"
+  integration_tests: "Full agent lifecycle, bulk event ingestion"
+
+blockers: []
+
+notes:
+  - "All code snippets are implementation-ready — no placeholders"
+  - "Default user seed: kotsai@gmail.com / kots@123 (per CLAUDE.md)"
+  - "XP worked examples verified against Gamification System Design spec (67 XP and 809 XP)"
+  - "OAuth2 flows use PKCE with Redis-backed CSRF state validation"
+  - "WebSocket authentication via JWT query parameter (token=)"
+  - "Persist writer designed as standalone asyncio process, not a Celery task, for lowest latency"
