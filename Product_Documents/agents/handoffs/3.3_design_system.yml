@@ -1,0 +1,60 @@
+handoff:
+  from:
+    stage: "3.3"
+    role: "Design System Agent"
+    agent_type: "general-purpose"
+  to:
+    stage: "2.2a"
+    role: "Frontend Expert"
+    agent_type: "general-purpose"
+  status: "complete"
+  date: "2026-03-16"
+  version: "1.0"
+
+artifacts:
+  - path: "Product_Documents/14_Design_System/Design_System_Spec.md"
+    type: "specification"
+    description: "Master design system specification: single source of truth for all visual implementation. Unifies tokens, colors, typography, spacing, 30+ components, patterns, motion, iconography, elevation, responsive behavior, theming, and design-to-code bridge."
+
+summary: |
+  Created the master Design System Specification that synthesizes decisions from:
+  - UI Design System (3.1): token values, component specs
+  - Visualization Spec (2.2): agent state colors, data viz palette, canvas tech
+  - Animation Spec (2.3): duration/easing tokens, LOD tiers, Rive bindings
+  - Gamification System Design (1.2): XP/tier/rarity colors, gamification components
+  - UX Design Spec (2.1): responsive strategy, accessibility, interaction patterns
+
+key_decisions:
+  - Three-tier token architecture: Primitive > Semantic > Component CSS custom properties
+  - Dark-mode-first with light theme override via data-theme attribute
+  - Professional/Gamified mode switching via data-mode attribute, independent of theme
+  - 4px spacing grid, Inter + JetBrains Mono font stack
+  - 7 component categories, 35+ components specified with anatomy/variants/sizes/states
+  - 7 duration tokens (0ms-1500ms) and 6 easing tokens with GSAP equivalents
+  - 4-tier LOD system for canvas (Full/Medium/Minimal/Off) targeting 60fps at 50 agents
+  - Reduced motion support via prefers-reduced-motion media query
+  - Lucide React icons + 6 custom domain-specific icons
+  - 8-level z-index scale (0-600)
+  - Tailwind config maps all tokens to utility classes
+  - Component file structure and Storybook organization defined
+  - 7-phase implementation priority order for frontend build
+
+dependencies_for_next_stage:
+  - "Frontend Expert must implement tokens.css first (Phase 1)"
+  - "Rive .riv assets must be authored per Animation Spec before Phase 6"
+  - "Font packages: @fontsource/inter, @fontsource/jetbrains-mono"
+  - "Icon package: lucide-react"
+  - "Chart libraries: recharts, echarts"
+  - "Canvas: @pixi/react (PixiJS 8)"
+  - "Animation: gsap, @rive-app/react-canvas"
+
+acceptance_criteria:
+  - "All CSS custom properties defined in tokens.css compile without error"
+  - "Tailwind config extends with all token references"
+  - "Every component renders correctly in dark theme (default)"
+  - "Light theme toggle swaps all surface/text/border tokens"
+  - "Professional mode hides gamification UI, desaturates canvas"
+  - "WCAG AA contrast ratios verified for all text/background combinations"
+  - "prefers-reduced-motion disables all animations"
+  - "60fps maintained with 50 agents at full LOD"
+  - "All 35+ components have Storybook stories with variant/size/state coverage"

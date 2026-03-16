@@ -1,0 +1,112 @@
+handoff:
+  id: "oav-2.1-ux-designer"
+  from_agent: "UX Designer"
+  from_stage: "2.1"
+  to_agents:
+    - agent: "UI Designer"
+      stage: "2.2"
+      priority: "P0"
+    - agent: "Frontend Expert"
+      stage: "2.2a"
+      priority: "P0"
+    - agent: "Motion Graphics"
+      stage: "1.4"
+      priority: "P1"
+  product: "OpenAgentVisualizer"
+  date: "2026-03-16"
+  status: "complete"
+
+artifacts:
+  primary:
+    - path: "Product_Documents/02_UX_Designer/UX_Design_Spec.md"
+      type: "ux-specification"
+      description: "Complete UX design specification including design principles, 12 user flows, information architecture, wireframes, interaction patterns, responsive strategy, accessibility compliance, error/empty states, onboarding design, and navigation model."
+      sections:
+        - "UX Design Principles (6 core principles: Linear not Jira, 5-min TTFV, agents as characters, Professional Mode toggle, lean back + lean forward, progressive disclosure)"
+        - "User Flows (12 detailed step-by-step flows covering onboarding, canvas exploration, task assignment, dashboards, error investigation, session replay, gamification settings, workspace management, cost analysis, alerts/SLOs, command palette, leaderboard)"
+        - "Information Architecture (complete sitemap with URL structure, page hierarchy, navigation model)"
+        - "Wireframes (7 ASCII wireframes: main canvas, agent detail panel, dashboard, sessions list, alert config, settings, leaderboard)"
+        - "Interaction Patterns (canvas interactions, keyboard shortcuts, right-click context menus, drag-and-drop, search/filter, notification behavior)"
+        - "Responsive Design Strategy (desktop-first with 4 breakpoints, tablet dashboard mode, mobile read-only, wall display mode)"
+        - "Accessibility WCAG 2.2 (color contrast ratios, color-blind palettes, keyboard navigation, screen reader support, reduced motion, text scaling, focus management)"
+        - "Error States and Empty States (no agents, API errors, loading skeletons, zero data, recovery states)"
+        - "Onboarding Design (4-layer progressive disclosure, sample data mode with 5 simulated agents, tooltip types, guided tour steps)"
+        - "Navigation Model (primary sidebar, secondary tabs, breadcrumbs, Cmd+K command palette, header bar, contextual navigation)"
+  dependencies_consumed:
+    - path: "Product_Documents/01_Product_Manager/PRD_OpenAgentVisualizer.md"
+      stage: "1.1"
+      consumed_sections:
+        - "Feature specifications (MVP Features 1-12)"
+        - "Target user personas (Alex, Sarah, Marcus, Priya)"
+        - "Product principles (visual-first, 5-min TTFV, purposeful gamification)"
+        - "Non-functional requirements (performance, latency)"
+    - path: "OpenAgentVisualizer_Research.md"
+      stage: "1.1"
+      consumed_sections:
+        - "Competitor analysis (LangSmith, Helicone, Arize, Langfuse)"
+        - "Technology recommendations (Pixi.js, Rive, XState, Zustand, React Flow)"
+        - "UX inspiration patterns (Linear, Gather.town, Habitica)"
+        - "Color system and spatial metaphors"
+    - path: "Product_Documents/04_Gamification_Expert/Gamification_System_Design.md"
+      stage: "1.2"
+      consumed_sections:
+        - "XP and leveling system (formulas, thresholds, titles)"
+        - "Achievement badge system (42 badges across 7 categories)"
+        - "Leaderboard system (scoring formulas, ranking algorithm)"
+        - "Professional Mode specification (dual-mode rendering)"
+        - "Anti-gaming measures"
+    - path: "Product_Documents/09_Agentic_AI_Architect/Agent_Integration_Architecture.md"
+      stage: "1.3"
+      consumed_sections:
+        - "Agent lifecycle state machine (10 states, transition table)"
+        - "Universal agent event schema (19 event types)"
+        - "SDK design (3-line integration, auto-detection)"
+        - "XState v5 actor model mapping"
+
+gate_b_checklist:
+  ux_wireframes_complete: true
+  canvas_interaction_model_defined: true
+  multi_persona_dashboard_differentiation: true
+  gamification_layer_visual_language: true
+  executive_dashboard_ux: true
+  professional_mode_toggle_specified: true
+  accessibility_compliance_documented: true
+  onboarding_flow_complete: true
+  responsive_strategy_defined: true
+  navigation_model_complete: true
+  keyboard_shortcuts_defined: true
+  error_and_empty_states_designed: true
+
+key_decisions:
+  - decision: "Icon-only sidebar collapsed by default"
+    rationale: "Maximizes canvas area for the virtual world view which is the primary product surface"
+  - decision: "Right-side sliding detail panel (not modal)"
+    rationale: "Allows continued canvas interaction while viewing agent details; non-blocking"
+  - decision: "No canvas on mobile or tablet"
+    rationale: "Pixi.js WebGL canvas requires precise mouse interaction; touch degradation is unacceptable"
+  - decision: "Sample Data Mode for empty workspaces"
+    rationale: "Eliminates blank-canvas first-session dropout; lets users explore full UX before SDK setup"
+  - decision: "Cmd+K command palette as primary power-user navigation"
+    rationale: "Proven pattern (Linear, Slack, VS Code); fastest possible navigation for keyboard-first engineers"
+  - decision: "Dark theme as default"
+    rationale: "Matches developer tool conventions; reduces eye strain for monitoring; enables vivid status colors"
+  - decision: "Professional Mode as toggle not separate product"
+    rationale: "Same data model reduces maintenance; enterprise users can optionally enable gamification"
+  - decision: "Wall Display Mode via URL parameter"
+    rationale: "Team monitoring use case needs full-screen, no-interaction display optimized for distance viewing"
+
+risks_identified:
+  - risk: "Canvas keyboard navigation may feel unnatural vs mouse"
+    mitigation: "Tab cycles through agents in spatial order; Enter opens detail; clear focus indicators"
+  - risk: "Professional Mode may feel like a lesser experience"
+    mitigation: "All data is identical; professional labels carry equal information density"
+  - risk: "Onboarding sample data may confuse users into thinking real data is simulated"
+    mitigation: "Persistent banner, watermark on avatars, (sample) labels on all metrics"
+
+next_steps:
+  - agent: "UI Designer"
+    action: "Produce design tokens, component library, and high-fidelity mockups based on wireframes"
+  - agent: "Frontend Expert"
+    action: "Implement navigation model, routing, and component structure based on information architecture"
+  - agent: "Motion Graphics"
+    action: "Design agent avatar animations for all 10 lifecycle states, celebration particles, and transition curves"

@@ -1,0 +1,94 @@
+handoff:
+  from: infographics_agent
+  to: [frontend_expert, backend_expert, code_reviewer, qa_engineer]
+  stage: "3.2"
+  status: complete
+  date: "2026-03-16"
+  artifacts:
+    - path: Product_Documents/06_Infographics/Dashboard_Infographics.md
+      type: design_spec
+      description: >
+        Complete dashboard infographics specification with 10 major sections:
+        Dashboard Design Philosophy (data-ink ratio, progressive disclosure, glanceable metrics),
+        6 Dashboard Layout Patterns (Overview, Agent Performance, Cost Analytics, Quality Metrics,
+        Team Comparison, Real-Time Monitoring) with full ASCII wireframes and component inventories,
+        15 KPI Card Designs with complete specs (label, format, icon, trend, threshold, sparkline,
+        sublabel, API endpoint, interaction behavior, status states),
+        12 Chart Specifications with exact implementation details (library selection, color mapping,
+        axis configuration, tooltip format, interaction behavior, responsive breakpoints, animation,
+        data format, and code samples for Recharts/ECharts),
+        4 Infographic Compositions (Agent Health Report, Weekly Digest, Cost Optimization Report,
+        Team Performance Scorecard) with full layout wireframes and generation rules,
+        Data Table Patterns (sorting, filtering, expansion, column customization, export, pagination),
+        Real-Time Update Patterns (per-chart-type update strategy, new data point animation,
+        stale data indicators, auto-refresh intervals),
+        Color Encoding Standards (sequential scales, diverging scales, categorical assignments,
+        threshold colors, accessibility-safe palettes with WCAG AA compliance),
+        Typography in Data Viz (number formatting rules for 12 value types, label placement,
+        annotation styles, font stack specification),
+        Print and Export Design (PDF layout, screenshot mode, dark-to-light palette transformation,
+        5 export formats with permissions).
+  gate: B
+  gate_criteria_met:
+    - Dashboard design philosophy defined with data-ink ratio target of 0.85+
+    - 6 dashboard layout patterns with complete wireframes and component inventories
+    - 15 KPI cards fully specified with formats, thresholds, icons, sparklines, and API endpoints
+    - 12 chart types specified with library selection (Recharts vs ECharts), exact color hex codes, interaction behavior, responsive breakpoints, animation timing, and data format schemas
+    - Library selection rules documented (Recharts for standard charts, ECharts for advanced types)
+    - 4 infographic compositions with printable layouts and generation rules
+    - Data table patterns covering sort, filter, expand, customize, export, and pagination
+    - Real-time update patterns with per-chart-type animation strategies and stale data indicators
+    - Color encoding standards with sequential, diverging, and categorical scales
+    - Accessibility-safe palettes tested for deuteranopia, protanopia, and tritanopia
+    - WCAG AA contrast compliance verified for all text-on-background combinations
+    - Typography system with number formatting rules for 12 value types
+    - Print/export design with dark-to-light palette transformation
+    - 5 export formats specified (PDF, CSV, JSON, PNG, SVG) with tier-based permissions
+    - TypeScript component props interfaces defined for BaseChartProps and KPICardProps
+    - 20 API endpoints mapped to dashboard components
+    - All specifications reference existing color system from Visualization Spec Section 7
+    - All animation timings compatible with Animation Spec motion laws
+    - Gamified and Professional Mode variants specified for team scorecard and XP charts
+    - Responsive breakpoints defined for Desktop XL, Desktop, Tablet, and Mobile
+  dependencies_for_next_stages:
+    frontend_expert:
+      - Use KPI card anatomy and 15 card specs to build reusable KPICard component
+      - Use chart specifications with exact Recharts/ECharts configurations for implementation
+      - Use BaseChartProps and KPICardProps TypeScript interfaces from Appendix A
+      - Use responsive breakpoints (1536px, 1280px, 768px) for all dashboard layouts
+      - Use real-time update patterns for WebSocket and SSE integration
+      - Use data table patterns for sortable/filterable/exportable table component
+      - Use print palette transformation for export functionality
+      - Use Presentation Mode spec for Shift+P keyboard shortcut
+    backend_expert:
+      - Use API endpoints from Appendix B to implement dashboard data sources
+      - Use refresh intervals to configure SSE and WebSocket push frequencies
+      - Use data format schemas from each chart spec for API response shapes
+      - Use cost optimization rules for insights/cost-optimization endpoint
+      - Use server-side PDF generation spec (Puppeteer) for export endpoint
+      - Use export logging requirements for audit trail
+    code_reviewer:
+      - Verify chart library selection follows documented rules (Recharts for standard, ECharts for advanced)
+      - Verify all KPI cards implement threshold coloring as specified
+      - Verify accessibility requirements (WCAG AA contrast, keyboard navigation, screen reader labels)
+      - Verify number formatting matches the 12-type formatting table
+      - Verify real-time update animations follow specified timing
+    qa_engineer:
+      - Test all 6 dashboard layouts at 4 responsive breakpoints
+      - Test all 15 KPI cards with normal, warning, critical, loading, and stale states
+      - Test all 12 chart types with real data, empty data, and error states
+      - Test export functionality for CSV, PDF, JSON, PNG, SVG
+      - Test accessibility mode toggle and color-blind safe palettes
+      - Test Presentation Mode (Shift+P toggle, font scaling, chrome hiding)
+      - Test stale data indicators at 30s, 60s, and 120s thresholds
+      - Test data table sorting, filtering, expansion, column customization, and pagination
+  notes: >
+    All color hex values are aligned with the Visualization Spec Section 7 color system.
+    Animation timings follow the three laws from Animation Spec Section 1.2.
+    Charts use Recharts for standard types (line, area, bar, pie, radar) and Apache ECharts
+    for advanced types (treemap, heatmap, violin, candlestick). Library selection is documented
+    in Section 4.13 with clear decision criteria. The 15 KPI cards cover all metrics referenced
+    in the PRD user stories (US-05, US-07, US-09, US-11, US-13, US-16). The gamified elements
+    (XP chart, leaderboard, achievements, scorecard) have Professional Mode variants as required
+    by the Gamification System Design. All infographic compositions support both screen display
+    and print export with automatic palette transformation.
