@@ -11,6 +11,8 @@ from app.core.config import settings
 from app.models.user import User, Workspace, WorkspaceMember
 from app.routers import auth, agents, events, otlp_receiver, websocket as ws_router, sessions, metrics, alerts, gamification
 from app.routers.spans import router as spans_router
+from app.routers.integrations import router as integrations_router
+from app.routers.workspaces import router as workspaces_router
 
 
 @asynccontextmanager
@@ -60,3 +62,5 @@ app.include_router(metrics.router)
 app.include_router(alerts.router)
 app.include_router(gamification.router)
 app.include_router(spans_router)
+app.include_router(integrations_router)
+app.include_router(workspaces_router)
