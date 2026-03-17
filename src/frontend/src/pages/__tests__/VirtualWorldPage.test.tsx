@@ -1,47 +1,47 @@
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../canvas/WorldCanvas', () => ({ WorldCanvas: () => <div data-testid="pixijs-canvas" /> }));
-vi.mock('../../hooks/useWebSocket', () => ({ useWebSocket: () => undefined }));
-vi.mock('../../hooks/useWorkspace', () => ({ useWorkspace: () => ({ data: { tier: 'pro' } }) }));
-vi.mock('../../stores/onboardingStore', () => ({ useOnboardingStore: vi.fn(() => ({ completed: true })) }));
-vi.mock('../../components/onboarding/SampleDataBanner', () => ({ SampleDataBanner: () => null }));
-vi.mock('../../components/onboarding/OnboardingWizard', () => ({ OnboardingWizard: () => <div data-testid="onboarding-wizard" /> }));
+// Mock canvas components — they require WebGL which isn't available in vitest
+vi.mock('../../canvas/WorldCanvas', () => ({
+  WorldCanvas: () => <div data-testid="world-canvas-2d" />,
+}));
+vi.mock('../../canvas/three/ThreeCanvas', () => ({
+  ThreeCanvas: () => <div data-testid="world-canvas-25d" />,
+}));
+vi.mock('../../components/canvas/PixelStreamingEmbed', () => ({
+  PixelStreamingEmbed: () => <div data-testid="pixel-streaming" />,
+}));
+vi.mock('../../hooks/useWorkspace', () => ({
+  useWorkspace: () => ({ tier: 'free', workspaceId: 'ws-1' }),
+}));
 
 import { VirtualWorldPage } from '../VirtualWorldPage';
-import { useOnboardingStore } from '../../stores/onboardingStore';
 
-describe('VirtualWorldPage', () => {
-  beforeEach(() => {
-    localStorage.setItem('oav_workspace', 'test-workspace');
-    // Reset to default: onboarding completed
-    vi.mocked(useOnboardingStore).mockReturnValue({ completed: true } as any);
+describe('VirtualWorldPage mode toggle', () => {
+  it('renders 2D canvas by default', () => {
+    render(<VirtualWorldPage />);
+    expect(document.querySelector('[data-testid="world-canvas-2d"]')).toBeTruthy();
+    expect(document.querySelector('[data-testid="world-canvas-25d"]')).toBeNull();
   });
 
-  it('shows 2D mode by default', () => {
-    render(<MemoryRouter><VirtualWorldPage /></MemoryRouter>);
-    expect(screen.getByTestId('pixijs-canvas')).toBeTruthy();
+  it('switches to 2.5D when 2.5D button clicked', () => {
+    render(<VirtualWorldPage />);
+    const btn = screen.getByText('2.5D');
+    fireEvent.click(btn);
+    expect(document.querySelector('[data-testid="world-canvas-25d"]')).toBeTruthy();
+    expect(document.querySelector('[data-testid="world-canvas-2d"]')).toBeNull();
   });
 
-  it('shows mode toggle buttons', () => {
-    render(<MemoryRouter><VirtualWorldPage /></MemoryRouter>);
-    expect(screen.getByRole('button', { name: /^2D$/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /2\.5D/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /3D/ })).toBeTruthy();
+  it('shows 3D button as locked for free tier (shows Pro badge)', () => {
+    render(<VirtualWorldPage />);
+    // The locked 3D button should show "Pro" badge
+    expect(screen.getByText(/Pro/i)).toBeTruthy();
   });
 
-  it('switches to 2.5D mode unmounts PixiJS', () => {
-    render(<MemoryRouter><VirtualWorldPage /></MemoryRouter>);
-    fireEvent.click(screen.getByRole('button', { name: /2\.5D/ }));
-    expect(screen.queryByTestId('pixijs-canvas')).toBeNull();
-  });
-
-  it('renders OnboardingWizard when onboarding not completed', () => {
-    // Override mock to return completed: false for this test
-    vi.mocked(useOnboardingStore).mockReturnValue({ completed: false } as any);
-    render(<MemoryRouter><VirtualWorldPage /></MemoryRouter>);
-    // OnboardingWizard mock returns a div with data-testid="onboarding-wizard"
-    expect(screen.getByTestId('onboarding-wizard')).toBeTruthy();
+  it('shows upgrade prompt when locked 3D button is clicked', () => {
+    render(<VirtualWorldPage />);
+    const btn = screen.getByTitle(/Upgrade to Pro/i);
+    fireEvent.click(btn);
+    expect(screen.getByText(/requires Pro or Enterprise/i)).toBeTruthy();
   });
 });
