@@ -1,100 +1,55 @@
 import { useState } from 'react';
 import { useSessionReplay } from '../hooks/useSessionReplay';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { SectionHeader } from '../components/layout/SectionHeader';
 import { EmptyState } from '../components/common/EmptyState';
-import { useQuery } from '@tanstack/react-query';
-import { getSessions } from '../services/sessionApi';
 
 export function ReplayPage() {
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
-  const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
-    queryKey: ['sessions'],
-    queryFn: getSessions,
-  });
-
-  const { events: _events, isLoading, cursorIndex, isPlaying, speed, currentEvent, play, pause, seek, changeSpeed, totalEvents } =
-    useSessionReplay(selectedSessionId);
+  const { sessions, isLoading } = useSessionReplay();
+  const [speed, setSpeed] = useState<0.5|1|2|4>(1);
+  const [playing, setPlaying] = useState(false);
+  const [cursor, setCursor] = useState(0);
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-xl font-bold text-oav-text">Session Replay</h1>
+    <div className="flex flex-col h-full p-6 space-y-4">
+      <SectionHeader title="Session Replay" />
 
-      {/* Session selector */}
-      <div className="bg-oav-surface border border-oav-border rounded-xl p-4">
-        <h2 className="text-oav-muted text-sm mb-2">Select Session</h2>
-        {sessionsLoading ? (
-          <LoadingSpinner />
-        ) : sessions.length === 0 ? (
-          <EmptyState message="No recorded sessions yet" />
-        ) : (
-          <select
-            className="bg-oav-bg border border-oav-border rounded-lg px-3 py-1.5 text-oav-text text-sm w-full"
-            value={selectedSessionId ?? ''}
-            onChange={(e) => setSelectedSessionId(e.target.value || null)}
-          >
-            <option value="">-- Choose session --</option>
-            {sessions.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name ?? s.id} ({s.event_count} events)
-              </option>
-            ))}
-          </select>
-        )}
+      <div className="flex-1 overflow-y-auto space-y-2">
+        {isLoading ? null : sessions.length === 0
+          ? <EmptyState message="No sessions recorded yet" />
+          : sessions.map((s: any) => (
+            <div key={s.id} className="rounded-xl border px-4 py-3 flex items-center justify-between cursor-pointer hover:border-oav-accent transition-colors"
+              style={{ background: 'var(--oav-surface)', borderColor: 'var(--oav-border)' }}>
+              <div>
+                <p className="text-oav-text text-sm font-medium">{s.agent_name ?? 'Session'}</p>
+                <p className="text-oav-muted text-xs">{new Date(s.started_at).toLocaleString()} · {s.event_count} events</p>
+              </div>
+              <button className="text-xs px-3 py-1 rounded-lg border text-oav-accent transition-colors"
+                style={{ borderColor: 'var(--oav-accent)' }}>Replay</button>
+            </div>
+          ))
+        }
       </div>
 
-      {/* Playback controls */}
-      {selectedSessionId && (
-        <div className="bg-oav-surface border border-oav-border rounded-xl p-4 space-y-3">
-          {isLoading ? (
-            <LoadingSpinner />
-          ) : (
-            <>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={isPlaying ? pause : play}
-                  className="bg-oav-accent text-white rounded-lg px-4 py-1.5 text-sm"
-                >
-                  {isPlaying ? 'Pause' : 'Play'}
-                </button>
-                <select
-                  className="bg-oav-bg border border-oav-border rounded text-oav-text text-xs px-2 py-1"
-                  value={speed}
-                  onChange={(e) => changeSpeed(Number(e.target.value))}
-                >
-                  <option value={0.5}>0.5x</option>
-                  <option value={1}>1x</option>
-                  <option value={2}>2x</option>
-                  <option value={4}>4x</option>
-                </select>
-                <span className="text-oav-muted text-xs">
-                  {cursorIndex + 1} / {totalEvents}
-                </span>
-              </div>
-
-              {/* Timeline scrubber */}
-              <input
-                type="range"
-                min={0}
-                max={Math.max(0, totalEvents - 1)}
-                value={cursorIndex}
-                onChange={(e) => seek(Number(e.target.value))}
-                className="w-full accent-oav-accent"
-              />
-
-              {/* Current event */}
-              {currentEvent && (
-                <div className="bg-oav-bg rounded-lg p-3 text-xs font-mono text-oav-muted">
-                  <span className="text-oav-accent">{currentEvent.event_type}</span>
-                  {' · '}
-                  {currentEvent.agent_id ? <span className="text-oav-text">{currentEvent.agent_id}</span> : 'system'}
-                  {' · '}
-                  {new Date(currentEvent.timestamp).toLocaleTimeString()}
-                </div>
-              )}
-            </>
-          )}
+      <div className="rounded-xl border px-6 py-4 space-y-3" style={{ background: 'var(--oav-surface)', borderColor: 'var(--oav-border)' }}>
+        <input type="range" min={0} max={100} value={cursor} onChange={e => setCursor(+e.target.value)}
+          className="w-full" />
+        <div className="flex items-center justify-between">
+          <button onClick={() => setPlaying(p => !p)}
+            className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all hover:opacity-80"
+            style={{ background: 'var(--oav-accent)', color: '#000' }}>
+            {playing ? '⏸ Pause' : '▶ Play'}
+          </button>
+          <div className="flex gap-1">
+            {([0.5,1,2,4] as const).map(s => (
+              <button key={s} onClick={() => setSpeed(s)}
+                className={`px-2 py-1 rounded text-xs font-mono transition-colors ${speed === s ? 'text-oav-accent' : 'text-oav-muted hover:text-oav-text'}`}
+                style={speed === s ? { background: 'var(--oav-selected)' } : undefined}>
+                {s}x
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
