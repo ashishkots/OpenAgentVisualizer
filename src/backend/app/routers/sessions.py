@@ -3,9 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, asc
 from typing import List
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_workspace_id
 from app.core.utils import utcnow
-from app.models.user import User, WorkspaceMember
 from app.models.event import AgentSession, Event
 from app.schemas.session import SessionCreate, SessionRead
 import uuid
@@ -13,22 +12,12 @@ import uuid
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
 
-async def _get_workspace_id(user: User, db: AsyncSession) -> str:
-    member = await db.scalar(
-        select(WorkspaceMember)
-        .where(WorkspaceMember.user_id == user.id)
-        .order_by(asc(WorkspaceMember.id))
-    )
-    return member.workspace_id if member else "unknown"
-
-
 @router.post("", status_code=201, response_model=SessionRead)
 async def create_session(
     req: SessionCreate,
-    current_user: User = Depends(get_current_user),
+    workspace_id: str = Depends(get_workspace_id),
     db: AsyncSession = Depends(get_db),
 ):
-    workspace_id = await _get_workspace_id(current_user, db)
     session = AgentSession(
         id=str(uuid.uuid4()),
         workspace_id=workspace_id,
@@ -45,10 +34,9 @@ async def create_session(
 @router.patch("/{session_id}/end", response_model=SessionRead)
 async def end_session(
     session_id: str,
-    current_user: User = Depends(get_current_user),
+    workspace_id: str = Depends(get_workspace_id),
     db: AsyncSession = Depends(get_db),
 ):
-    workspace_id = await _get_workspace_id(current_user, db)
     session = await db.scalar(
         select(AgentSession).where(
             AgentSession.id == session_id,
@@ -66,10 +54,9 @@ async def end_session(
 @router.get("/{session_id}/replay")
 async def get_replay_events(
     session_id: str,
-    current_user: User = Depends(get_current_user),
+    workspace_id: str = Depends(get_workspace_id),
     db: AsyncSession = Depends(get_db),
 ) -> list:
-    workspace_id = await _get_workspace_id(current_user, db)
     # Verify session exists and belongs to workspace
     session = await db.scalar(
         select(AgentSession).where(

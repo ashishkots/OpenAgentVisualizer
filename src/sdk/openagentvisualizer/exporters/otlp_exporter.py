@@ -6,7 +6,7 @@ from openagentvisualizer.core.event import OAVEvent
 
 
 class OTLPExporter:
-    def __init__(self, api_key: str, endpoint: str = "http://localhost:4317"):
+    def __init__(self, api_key: str, endpoint: str = "localhost:4317"):
         resource = Resource(attributes={
             "service.name": "openagentvisualizer-sdk",
             "oav.api_key": api_key,

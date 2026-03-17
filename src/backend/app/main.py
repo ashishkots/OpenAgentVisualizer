@@ -10,6 +10,7 @@ from app.core.security import hash_password
 from app.core.config import settings
 from app.models.user import User, Workspace, WorkspaceMember
 from app.routers import auth, agents, events, otlp_receiver, websocket as ws_router, sessions, metrics, alerts, gamification
+from app.routers.spans import router as spans_router
 
 
 @asynccontextmanager
@@ -42,6 +43,13 @@ async def seed_default_user() -> None:
 
 
 app = FastAPI(title="OpenAgentVisualizer API", version="1.0.0", lifespan=lifespan)
+
+
+@app.get("/api/health")
+async def health():
+    return {"status": "ok"}
+
+
 app.include_router(auth.router)
 app.include_router(agents.router)
 app.include_router(events.router)
@@ -51,3 +59,4 @@ app.include_router(sessions.router)
 app.include_router(metrics.router)
 app.include_router(alerts.router)
 app.include_router(gamification.router)
+app.include_router(spans_router)
