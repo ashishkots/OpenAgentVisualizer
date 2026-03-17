@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useAgentStore } from '../stores/agentStore';
 import { useAlertStore } from '../stores/alertStore';
 import { useMetricsStore } from '../stores/metricsStore';
+import type { Agent, AgentStatus } from '../types/agent';
+import type { AlertType } from '../types/gamification';
 
 const WS_BASE = typeof window !== 'undefined'
   ? `ws://${window.location.host}/ws`
@@ -9,12 +11,15 @@ const WS_BASE = typeof window !== 'undefined'
 
 export function useWebSocket(workspaceId: string | null) {
   const wsRef = useRef<WebSocket | null>(null);
+  const destroyedRef = useRef(false);
   const { upsertAgent, setAgentStatus } = useAgentStore();
   const { addAlert } = useAlertStore();
   const { updateLiveMetrics } = useMetricsStore();
 
   useEffect(() => {
     if (!workspaceId) return;
+
+    destroyedRef.current = false;
 
     const connect = () => {
       const ws = new WebSocket(`${WS_BASE}/live?workspace_id=${workspaceId}`);
@@ -32,8 +37,9 @@ export function useWebSocket(workspaceId: string | null) {
       ws.onerror = () => console.error('[OAV WS] connection error');
 
       ws.onclose = () => {
+        if (destroyedRef.current) return; // don't reconnect after unmount
         setTimeout(() => {
-          if (wsRef.current?.readyState !== WebSocket.OPEN) {
+          if (!destroyedRef.current && wsRef.current?.readyState !== WebSocket.OPEN) {
             connect();
           }
         }, 2000);
@@ -43,6 +49,7 @@ export function useWebSocket(workspaceId: string | null) {
     connect();
 
     return () => {
+      destroyedRef.current = true;
       wsRef.current?.close();
       wsRef.current = null;
     };
@@ -53,13 +60,13 @@ export function useWebSocket(workspaceId: string | null) {
     const agentId = event.agent_id as string;
 
     if (type === 'agent.state.changed' && agentId) {
-      setAgentStatus(agentId, event.status as any);
-    } else if (type === 'agent.registered') {
-      upsertAgent(event.agent as any);
-    } else if (type === 'alert.created') {
-      addAlert(event.alert as any);
+      setAgentStatus(agentId, event.status as AgentStatus);
+    } else if (type === 'agent.registered' && event.agent) {
+      upsertAgent(event.agent as Agent);
+    } else if (type === 'alert.created' && event.alert) {
+      addAlert(event.alert as AlertType);
     } else if (type?.startsWith('agent.llm.')) {
-      updateLiveMetrics(event as any);
+      updateLiveMetrics(event as { cost_delta: number; tokens_delta: number });
     }
   }
 }

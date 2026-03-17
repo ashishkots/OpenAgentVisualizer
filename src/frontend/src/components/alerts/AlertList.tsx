@@ -34,6 +34,7 @@ export function AlertList({ alerts }: Props) {
           {!alert.resolved && (
             <button
               onClick={() => resolve(alert.id)}
+              aria-label={`Resolve alert: ${alert.message}`}
               className="text-xs text-oav-accent hover:text-blue-400 shrink-0"
             >
               Resolve

@@ -15,25 +15,42 @@ export function useSessionReplay(sessionId: string | null) {
     enabled: !!sessionId,
   });
 
-  const play = useCallback(() => {
-    if (isPlaying) return;
-    setIsPlaying(true);
+  const stopInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const startInterval = useCallback((currentSpeed: number) => {
+    stopInterval();
     intervalRef.current = setInterval(() => {
       setCursorIndex((prev) => {
         if (prev >= events.length - 1) {
-          clearInterval(intervalRef.current!);
+          stopInterval();
           setIsPlaying(false);
           return prev;
         }
         return prev + 1;
       });
-    }, 500 / speed);
-  }, [isPlaying, events.length, speed]);
+    }, 500 / currentSpeed);
+  }, [stopInterval, events.length]);
+
+  const play = useCallback(() => {
+    if (isPlaying) return;
+    setIsPlaying(true);
+    startInterval(speed);
+  }, [isPlaying, speed, startInterval]);
 
   const pause = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    stopInterval();
     setIsPlaying(false);
-  }, []);
+  }, [stopInterval]);
+
+  const changeSpeed = useCallback((newSpeed: number) => {
+    setSpeed(newSpeed);
+    if (isPlaying) startInterval(newSpeed); // restart interval at new speed
+  }, [isPlaying, startInterval]);
 
   const seek = useCallback((index: number) => {
     pause();
@@ -52,7 +69,7 @@ export function useSessionReplay(sessionId: string | null) {
     play,
     pause,
     seek,
-    setSpeed,
+    changeSpeed,
     totalEvents: events.length,
   };
 }

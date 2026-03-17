@@ -12,7 +12,7 @@ export function ReplayPage() {
     queryFn: getSessions,
   });
 
-  const { events: _events, isLoading, cursorIndex, isPlaying, speed, currentEvent, play, pause, seek, setSpeed, totalEvents } =
+  const { events: _events, isLoading, cursorIndex, isPlaying, speed, currentEvent, play, pause, seek, changeSpeed, totalEvents } =
     useSessionReplay(selectedSessionId);
 
   return (
@@ -59,7 +59,7 @@ export function ReplayPage() {
                 <select
                   className="bg-oav-bg border border-oav-border rounded text-oav-text text-xs px-2 py-1"
                   value={speed}
-                  onChange={(e) => setSpeed(Number(e.target.value))}
+                  onChange={(e) => changeSpeed(Number(e.target.value))}
                 >
                   <option value={0.5}>0.5x</option>
                   <option value={1}>1x</option>

@@ -15,6 +15,7 @@ export function WorldCanvas({ workspaceId }: Props) {
 
   useEffect(() => {
     if (!containerRef.current) return;
+    let cancelled = false;
     const app = new Application();
     appRef.current = app;
 
@@ -25,7 +26,7 @@ export function WorldCanvas({ workspaceId }: Props) {
         antialias: true,
       })
       .then(() => {
-        if (!containerRef.current) return;
+        if (cancelled || !containerRef.current) return;
         containerRef.current.appendChild(app.canvas);
         const renderer = new WorldRenderer(app);
         rendererRef.current = renderer;
@@ -33,6 +34,7 @@ export function WorldCanvas({ workspaceId }: Props) {
       });
 
     return () => {
+      cancelled = true;
       appRef.current?.destroy(true);
       appRef.current = null;
       rendererRef.current = null;

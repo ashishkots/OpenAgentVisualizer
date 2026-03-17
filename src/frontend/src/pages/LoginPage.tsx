@@ -29,20 +29,30 @@ export function LoginPage() {
       >
         <h1 className="text-2xl font-bold text-oav-text">OpenAgentVisualizer</h1>
         {error && <p className="text-oav-error text-sm">{error}</p>}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full bg-oav-bg border border-oav-border rounded-lg px-4 py-2 text-oav-text"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full bg-oav-bg border border-oav-border rounded-lg px-4 py-2 text-oav-text"
-        />
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm text-oav-muted mb-1">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-oav-bg border border-oav-border rounded-lg px-4 py-2 text-oav-text"
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm text-oav-muted mb-1">Password</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-oav-bg border border-oav-border rounded-lg px-4 py-2 text-oav-text"
+            />
+          </div>
+        </div>
         <button
           type="submit"
           className="w-full bg-oav-accent text-white rounded-lg py-2 font-semibold hover:bg-blue-600"

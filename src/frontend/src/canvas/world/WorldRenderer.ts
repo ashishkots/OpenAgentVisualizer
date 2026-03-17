@@ -2,6 +2,7 @@ import type { Application } from 'pixi.js';
 import { IsoGrid } from './IsoGrid';
 import type { Agent } from '../../types/agent';
 import { worldToScreen } from '../../lib/isoMath';
+import { AgentSprite } from '../agents/AgentSprite';
 
 const GRID_COLS = 20;
 const GRID_ROWS = 20;
@@ -12,6 +13,7 @@ export class WorldRenderer {
   private app: Application;
   private grid: IsoGrid;
   private agentPositions: Map<string, { x: number; y: number }> = new Map();
+  private sprites: Map<string, AgentSprite> = new Map();
 
   constructor(app: Application) {
     this.app = app;
@@ -26,12 +28,32 @@ export class WorldRenderer {
   }
 
   syncAgents(agents: Agent[]) {
-    // Assign deterministic positions on a grid based on agent index
     agents.forEach((agent, idx) => {
       const col = (idx % GRID_COLS) + 2;
       const row = Math.floor(idx / GRID_COLS) * 2 + 3;
       this.agentPositions.set(agent.id, { x: col, y: row });
+
+      let sprite = this.sprites.get(agent.id);
+      if (!sprite) {
+        sprite = new AgentSprite(agent);
+        this.sprites.set(agent.id, sprite);
+        this.app.stage.addChild(sprite.view);
+      } else {
+        sprite.updateStatus(agent.status);
+      }
+
+      const screenPos = this.worldToScreenPos(col, row);
+      sprite.moveTo(screenPos.x, screenPos.y);
     });
+
+    // Remove sprites for agents that no longer exist
+    const agentIds = new Set(agents.map((a) => a.id));
+    for (const [id, sprite] of this.sprites) {
+      if (!agentIds.has(id)) {
+        this.app.stage.removeChild(sprite.view);
+        this.sprites.delete(id);
+      }
+    }
   }
 
   worldToScreenPos(wx: number, wy: number): { x: number; y: number } {
