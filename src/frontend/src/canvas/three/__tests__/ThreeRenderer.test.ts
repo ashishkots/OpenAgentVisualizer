@@ -107,3 +107,10 @@ describe('ThreeRenderer class', () => {
     renderer.dispose();
   });
 });
+
+describe('ThreeCanvas', () => {
+  it('can be imported', async () => {
+    const { ThreeCanvas } = await import('../ThreeCanvas');
+    expect(ThreeCanvas).toBeDefined();
+  });
+});
