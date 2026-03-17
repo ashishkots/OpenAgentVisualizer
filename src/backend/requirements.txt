@@ -43,3 +43,4 @@ faker==25.9.1
 testcontainers[postgres,redis]==4.0.0rc1
 aiosqlite==0.20.0
 fakeredis==2.23.2
+httpx-ws==0.6.0
