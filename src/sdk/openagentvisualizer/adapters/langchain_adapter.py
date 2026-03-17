@@ -1,69 +1,108 @@
-from typing import Any, Dict, List, Optional
-from openagentvisualizer.core.event import OAVEvent
+from __future__ import annotations
+import os
+import time
+from typing import Any, Dict, List, Union
 
+# Re-export spec-compliant OAVCallbackHandler from integrations tree.
+# This makes the SDK adapter a thin re-export so both import paths work:
+#   from openagentvisualizer.adapters.langchain_adapter import OAVCallbackHandler
+#   from src.integrations.open_source.langchain import OAVCallbackHandler
 try:
-    from langchain_core.callbacks.base import BaseCallbackHandler
+    from src.integrations.open_source.langchain import OAVCallbackHandler  # noqa: F401
 except ImportError:
-    # Graceful degradation when langchain not installed
-    class BaseCallbackHandler:  # type: ignore
-        pass
+    # Fallback: define spec-compliant handler inline when integrations tree is
+    # not on PYTHONPATH (e.g. installed as a standalone package).
+    from src.integrations.open_source.base import OAVBaseTracer, OAVSpan  # type: ignore
 
+    try:
+        from langchain_core.callbacks.base import BaseCallbackHandler
+        _HAS_LANGCHAIN = True
+    except ImportError:
+        BaseCallbackHandler = object  # type: ignore
+        _HAS_LANGCHAIN = False
 
-class OAVCallbackHandler(BaseCallbackHandler):
-    def __init__(self, tracer, agent_id: str):
-        self._tracer = tracer
-        self._agent_id = agent_id
+    class OAVCallbackHandler(BaseCallbackHandler):  # type: ignore[misc]
+        """LangChain callback handler — spec signature: (agent_id, endpoint, api_key)."""
 
-    def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any) -> None:
-        self._tracer._emit(OAVEvent(
-            "agent.llm.started",
-            self._tracer.workspace_id,
-            self._agent_id,
-            extra_data={"prompt_count": len(prompts)},
-        ))
+        def __init__(self, agent_id: str, endpoint: str = "", api_key: str = ""):
+            if _HAS_LANGCHAIN:
+                super().__init__()
+            self.agent_id = agent_id
+            self.tracer = OAVBaseTracer(
+                endpoint=endpoint or os.getenv("OAV_ENDPOINT", "http://localhost:4318"),
+                api_key=api_key or os.getenv("OAV_API_KEY", ""),
+                source="langchain",
+            )
+            self._start_time: float = 0.0
+            self._model_name: str = "unknown"
 
-    def on_llm_end(self, response: Any, **kwargs: Any) -> None:
-        usage = {}
-        if hasattr(response, "llm_output") and response.llm_output:
-            usage = response.llm_output.get("token_usage", {}) or {}
-        self._tracer._emit(OAVEvent(
-            "agent.llm.completed",
-            self._tracer.workspace_id,
-            self._agent_id,
-            extra_data={
-                "prompt_tokens": usage.get("prompt_tokens", 0),
-                "completion_tokens": usage.get("completion_tokens", 0),
-                "total_tokens": usage.get("total_tokens", 0),
-            },
-        ))
+        def on_llm_start(
+            self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
+        ) -> None:
+            self._start_time = time.time()
+            self._model_name = serialized.get("name", "unknown")
 
-    def on_llm_error(self, error: Exception, **kwargs: Any) -> None:
-        self._tracer._emit(OAVEvent(
-            "agent.llm.error",
-            self._tracer.workspace_id,
-            self._agent_id,
-            extra_data={"error": str(error)},
-        ))
+        def on_llm_end(self, response: Any, **kwargs: Any) -> None:
+            latency = (time.time() - self._start_time) * 1000
+            usage = (getattr(response, "llm_output", None) or {}).get("token_usage", {})
+            self.tracer.send(OAVSpan(
+                agent_id=self.agent_id,
+                operation="llm_call",
+                input_tokens=usage.get("prompt_tokens", 0),
+                output_tokens=usage.get("completion_tokens", 0),
+                latency_ms=latency,
+                model=self._model_name,
+                cost_usd=0.0,
+                source="langchain",
+            ))
 
-    def on_tool_start(self, serialized: Dict[str, Any], input_str: str, **kwargs: Any) -> None:
-        self._tracer._emit(OAVEvent(
-            "agent.tool.started",
-            self._tracer.workspace_id,
-            self._agent_id,
-            extra_data={"tool_name": serialized.get("name", "unknown")},
-        ))
+        def on_llm_error(
+            self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
+        ) -> None:
+            latency = (time.time() - self._start_time) * 1000
+            self.tracer.send(OAVSpan(
+                agent_id=self.agent_id,
+                operation="llm_call",
+                input_tokens=0,
+                output_tokens=0,
+                latency_ms=latency,
+                model=self._model_name,
+                cost_usd=0.0,
+                source="langchain",
+                error=str(error),
+            ))
 
-    def on_tool_end(self, output: str, **kwargs: Any) -> None:
-        self._tracer._emit(OAVEvent(
-            "agent.tool.completed",
-            self._tracer.workspace_id,
-            self._agent_id,
-        ))
+        def on_tool_start(
+            self, serialized: Dict[str, Any], input_str: str, **kwargs: Any
+        ) -> None:
+            self._start_time = time.time()
+            self._tool_name: str = serialized.get("name", "unknown")
 
-    def on_tool_error(self, error: Exception, **kwargs: Any) -> None:
-        self._tracer._emit(OAVEvent(
-            "agent.tool.error",
-            self._tracer.workspace_id,
-            self._agent_id,
-            extra_data={"error": str(error)},
-        ))
+        def on_tool_end(self, output: str, **kwargs: Any) -> None:
+            latency = (time.time() - self._start_time) * 1000
+            self.tracer.send(OAVSpan(
+                agent_id=self.agent_id,
+                operation=f"tool:{self._tool_name}",
+                input_tokens=0,
+                output_tokens=0,
+                latency_ms=latency,
+                model="unknown",
+                cost_usd=0.0,
+                source="langchain",
+            ))
+
+        def on_tool_error(
+            self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
+        ) -> None:
+            latency = (time.time() - self._start_time) * 1000
+            self.tracer.send(OAVSpan(
+                agent_id=self.agent_id,
+                operation=f"tool:{getattr(self, '_tool_name', 'unknown')}",
+                input_tokens=0,
+                output_tokens=0,
+                latency_ms=latency,
+                model="unknown",
+                cost_usd=0.0,
+                source="langchain",
+                error=str(error),
+            ))
