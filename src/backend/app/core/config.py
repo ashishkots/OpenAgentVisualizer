@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     OTLP_GRPC_PORT: int = 4317
     OTLP_HTTP_PORT: int = 4318
 
+    # Public API base URL (used in workspace endpoint responses)
+    OAV_PUBLIC_URL: str = "http://localhost:8000"
+
     # Default seed user
     SEED_EMAIL: str = "kotsai@gmail.com"
     SEED_PASSWORD: str = "kots@123"

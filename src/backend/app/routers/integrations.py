@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -5,6 +7,8 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.event import Event
 from datetime import datetime, timedelta, timezone
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/integrations", tags=["integrations"])
 
@@ -57,7 +61,8 @@ async def list_integrations(
             last_ts = last_result.scalar_one_or_none()
             last_seen = last_ts.isoformat() if last_ts else None
             status = "connected" if last_ts else "not_configured"
-        except Exception:
+        except Exception as e:
+            logger.warning("Failed to query event count for integration %s: %s", integration["id"], e)
             count_24h = 0
             last_seen = None
             status = "not_configured"

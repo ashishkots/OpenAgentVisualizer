@@ -1,10 +1,15 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import Workspace
 from app.models.agent import Agent
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/workspaces", tags=["workspaces"])
 
@@ -21,13 +26,14 @@ async def get_workspace(
         try:
             count_result = await db.execute(select(func.count()).select_from(Agent))
             agent_count = count_result.scalar() or 0
-        except Exception:
+        except Exception as e:
+            logger.warning("Failed to query agent count for workspace %s: %s", workspace_id, e)
             agent_count = 0
         return {
             "workspace_id": "default",
             "name": "Default Workspace",
             "agent_count": agent_count,
-            "endpoint": "http://localhost:8000",
+            "endpoint": settings.OAV_PUBLIC_URL,
         }
 
     # Look up workspace by slug or id
@@ -45,12 +51,13 @@ async def get_workspace(
             select(func.count()).select_from(Agent).where(Agent.workspace_id == ws.id)
         )
         agent_count = count_result.scalar() or 0
-    except Exception:
+    except Exception as e:
+        logger.warning("Failed to query agent count for workspace %s: %s", workspace_id, e)
         agent_count = 0
 
     return {
         "workspace_id": workspace_id,
         "name": ws.name,
         "agent_count": agent_count,
-        "endpoint": "http://localhost:8000",
+        "endpoint": settings.OAV_PUBLIC_URL,
     }
