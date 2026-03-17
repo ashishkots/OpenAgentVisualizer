@@ -8,18 +8,18 @@ describe('XPProgressBar', () => {
     expect(screen.getByText('Rookie')).toBeTruthy();
   });
 
-  it('shows "Pro" at 1000 XP', () => {
-    render(<XPProgressBar xpTotal={1000} />);
+  it('shows "Pro" at 500 XP', () => {
+    render(<XPProgressBar xpTotal={500} />);
     expect(screen.getByText('Pro')).toBeTruthy();
   });
 
-  it('shows "Legend" at 15000 XP', () => {
+  it('shows "Elite" at 15000 XP', () => {
     render(<XPProgressBar xpTotal={15000} />);
-    expect(screen.getByText('Legend')).toBeTruthy();
+    expect(screen.getByText('Elite')).toBeTruthy();
   });
 
   it('shows level number', () => {
-    render(<XPProgressBar xpTotal={500} />);
+    render(<XPProgressBar xpTotal={0} />);
     expect(screen.getByText('Lv 1')).toBeTruthy();
   });
 });
