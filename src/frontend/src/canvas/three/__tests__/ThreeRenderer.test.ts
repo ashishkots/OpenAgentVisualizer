@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('three', () => ({
   Scene: vi.fn(() => ({ add: vi.fn(), remove: vi.fn(), background: null })),
   OrthographicCamera: vi.fn(() => ({ position: { set: vi.fn() }, lookAt: vi.fn(), updateProjectionMatrix: vi.fn(), left: 0, right: 0, top: 0, bottom: 0 })),
-  WebGLRenderer: vi.fn(() => ({ setSize: vi.fn(), setPixelRatio: vi.fn(), render: vi.fn(), dispose: vi.fn(), domElement: document.createElement('canvas') })),
+  WebGLRenderer: vi.fn(() => ({ setSize: vi.fn(), setPixelRatio: vi.fn(), render: vi.fn(), dispose: vi.fn(), setClearColor: vi.fn(), domElement: document.createElement('canvas') })),
   DirectionalLight: vi.fn(() => ({ position: { set: vi.fn() } })),
   AmbientLight: vi.fn(),
   GridHelper: vi.fn(() => ({ rotation: { x: 0 }, position: { set: vi.fn() } })),
@@ -112,5 +112,19 @@ describe('ThreeCanvas', () => {
   it('can be imported', async () => {
     const { ThreeCanvas } = await import('../ThreeCanvas');
     expect(ThreeCanvas).toBeDefined();
+  });
+});
+
+describe('ThreeMiniMap', () => {
+  it('can be imported', async () => {
+    const { ThreeMiniMap } = await import('../ThreeMiniMap');
+    expect(ThreeMiniMap).toBeDefined();
+  });
+
+  it('instantiates without throwing', async () => {
+    const { ThreeMiniMap } = await import('../ThreeMiniMap');
+    const { Scene } = await import('three');
+    const scene = new Scene();
+    expect(() => new ThreeMiniMap(scene as any)).not.toThrow();
   });
 });
