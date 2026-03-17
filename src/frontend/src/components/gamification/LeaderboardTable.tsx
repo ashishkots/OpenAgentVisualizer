@@ -1,28 +1,19 @@
-import type { LeaderboardEntry } from '../../types/gamification';
+import type { Agent } from '../../types/agent';
 import { XPProgressBar } from './XPProgressBar';
-
-interface Props {
-  entries: LeaderboardEntry[];
-}
-
-export function LeaderboardTable({ entries }: Props) {
-  if (entries.length === 0) {
-    return <p className="text-oav-muted text-sm">No agents yet.</p>;
-  }
-
+const MEDALS = ['🥇','🥈','🥉'];
+export function LeaderboardTable({ agents }: { agents: Agent[] }) {
+  const sorted = [...agents].sort((a,b) => b.xp_total - a.xp_total).slice(0, 10);
   return (
     <div className="space-y-2">
-      {entries.map((entry, idx) => (
-        <div
-          key={entry.agent_id}
-          className="flex items-center gap-3 bg-oav-surface border border-oav-border rounded-lg px-4 py-2"
-        >
-          <span className="text-oav-muted text-sm w-6 shrink-0">#{idx + 1}</span>
+      {sorted.map((a, i) => (
+        <div key={a.id} className="flex items-center gap-3 p-2 rounded-lg transition-colors"
+          style={{ background: 'var(--oav-surface-2)' }}>
+          <span className="w-6 text-center text-sm">{MEDALS[i] ?? `#${i+1}`}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-oav-text text-sm font-medium truncate">{entry.agent_name}</p>
-            <XPProgressBar xpTotal={entry.total_xp} />
+            <p className="text-oav-text text-sm truncate">{a.name}</p>
+            <XPProgressBar xpTotal={a.xp_total} />
           </div>
-          <span className="text-oav-muted text-xs shrink-0">{entry.total_xp} XP</span>
+          <span className="text-oav-muted text-xs shrink-0">{a.xp_total.toLocaleString()} XP</span>
         </div>
       ))}
     </div>
