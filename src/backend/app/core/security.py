@@ -1,8 +1,17 @@
 from datetime import datetime, timedelta, timezone
+import warnings
 from typing import Optional
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from app.core.config import settings
+
+# Check for weak default secret at module load time
+if settings.SECRET_KEY == "changeme-in-production":
+    warnings.warn(
+        "SECRET_KEY is set to the insecure default. Set a strong SECRET_KEY environment variable before deploying.",
+        UserWarning,
+        stacklevel=1,
+    )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -29,14 +38,15 @@ def create_access_token(data: dict, expires_delta_minutes: Optional[int] = None)
     Returns:
         Encoded JWT token string
     """
-    minutes = (
-        expires_delta_minutes
-        if expires_delta_minutes is not None
-        else settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    if "exp" in data:
+        warnings.warn(
+            "create_access_token: 'exp' key in data will be overwritten by the generated expiry.",
+            UserWarning,
+            stacklevel=2,
+        )
+    minutes = expires_delta_minutes if expires_delta_minutes is not None else settings.ACCESS_TOKEN_EXPIRE_MINUTES
     expire = datetime.now(timezone.utc) + timedelta(minutes=minutes)
-    payload = {**data, "exp": expire}
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return jwt.encode({**data, "exp": expire}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
 def decode_token(token: str) -> dict:

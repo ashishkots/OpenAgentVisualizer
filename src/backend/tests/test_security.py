@@ -1,6 +1,6 @@
 import pytest
 from app.core.security import hash_password, verify_password, create_access_token, decode_token
-from jose import JWTError
+from jose.exceptions import ExpiredSignatureError
 
 
 def test_password_round_trip():
@@ -18,5 +18,12 @@ def test_jwt_round_trip():
 
 def test_expired_token_raises():
     token = create_access_token({"sub": "x"}, expires_delta_minutes=-1)
-    with pytest.raises(JWTError):
+    with pytest.raises(ExpiredSignatureError):
         decode_token(token)
+
+
+def test_tampered_token_raises():
+    from jose import jwt, JWTError
+    tampered = jwt.encode({"sub": "attacker"}, "wrongsecret", algorithm="HS256")
+    with pytest.raises(JWTError):
+        decode_token(tampered)
