@@ -22,7 +22,6 @@ async def test_invalid_credentials_rejected(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Agents router not implemented yet (BE7)")
 async def test_invalid_api_key_rejected(client: AsyncClient):
-    r = await client.get("/api/agents", headers={"X-API-Key": "oav_fake"})
+    r = await client.get("/api/agents", headers={"Authorization": "Bearer invalid_token"})
     assert r.status_code == 401

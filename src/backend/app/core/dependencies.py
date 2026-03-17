@@ -13,7 +13,7 @@ async def get_current_user(
 ) -> User:
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid auth header")
-    token = authorization.removeprefix("Bearer ")
+    token = authorization[7:]  # Remove "Bearer " prefix (Python 3.8 compatible)
     try:
         payload = decode_token(token)
     except JWTError:
