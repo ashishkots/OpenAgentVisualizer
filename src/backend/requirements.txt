@@ -42,3 +42,4 @@ factory-boy==3.3.0
 faker==25.9.1
 testcontainers[postgres,redis]==4.0.0rc1
 aiosqlite==0.20.0
+fakeredis==2.23.2

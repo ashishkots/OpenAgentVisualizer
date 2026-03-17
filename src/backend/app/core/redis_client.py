@@ -6,6 +6,7 @@ _redis_pool: aioredis.Redis = None
 
 
 async def get_redis() -> aioredis.Redis:
+    """Get or create a Redis connection."""
     global _redis_pool
     if _redis_pool is None:
         _redis_pool = aioredis.from_url(settings.REDIS_URL, decode_responses=True)

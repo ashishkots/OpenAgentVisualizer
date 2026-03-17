@@ -3,6 +3,7 @@ import pytest_asyncio
 from contextlib import asynccontextmanager
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+import fakeredis.aioredis
 
 
 def pytest_configure(config):
@@ -27,6 +28,7 @@ async def mock_lifespan(app):
 async def client():
     from app.main import app
     from app.core.database import Base, get_db
+    from app.routers import events
 
     # Override lifespan to skip PostgreSQL/Redis connections
     app.router.lifespan_context = mock_lifespan
@@ -45,7 +47,13 @@ async def client():
                 await session.rollback()
                 raise
 
+    # Mock Redis with fakeredis
+    fake_redis = fakeredis.aioredis.FakeRedis()
+    async def override_redis():
+        return fake_redis
+
     app.dependency_overrides[get_db] = override_db
+    app.dependency_overrides[events.get_redis] = override_redis
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         yield c

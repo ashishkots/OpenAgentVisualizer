@@ -9,7 +9,7 @@ from app.core.redis_client import get_redis, close_redis
 from app.core.security import hash_password
 from app.core.config import settings
 from app.models.user import User, Workspace, WorkspaceMember
-from app.routers import auth, agents
+from app.routers import auth, agents, events
 
 
 @asynccontextmanager
@@ -44,3 +44,4 @@ async def seed_default_user() -> None:
 app = FastAPI(title="OpenAgentVisualizer API", version="1.0.0", lifespan=lifespan)
 app.include_router(auth.router)
 app.include_router(agents.router)
+app.include_router(events.router)
