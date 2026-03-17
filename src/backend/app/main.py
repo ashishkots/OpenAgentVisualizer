@@ -9,7 +9,7 @@ from app.core.redis_client import get_redis, close_redis
 from app.core.security import hash_password
 from app.core.config import settings
 from app.models.user import User, Workspace, WorkspaceMember
-from app.routers import auth, agents, events, otlp_receiver, websocket as ws_router, sessions
+from app.routers import auth, agents, events, otlp_receiver, websocket as ws_router, sessions, metrics
 
 
 @asynccontextmanager
@@ -48,3 +48,4 @@ app.include_router(events.router)
 app.include_router(otlp_receiver.router)
 app.include_router(ws_router.router)
 app.include_router(sessions.router)
+app.include_router(metrics.router)
