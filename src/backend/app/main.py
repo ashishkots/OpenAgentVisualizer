@@ -17,7 +17,7 @@ from app.routers.spans import router as spans_router
 async def lifespan(app: FastAPI):
     # Initialize DB tables (Alembic handles production; create_all for dev/test)
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(lambda c: Base.metadata.create_all(c, checkfirst=True))
     # Warm up Redis pool (fixes race condition — single init here, not lazy)
     await get_redis()
     # Seed default user

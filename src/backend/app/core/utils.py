@@ -2,5 +2,5 @@ from datetime import datetime, timezone
 
 
 def utcnow() -> datetime:
-    """Return current UTC datetime (timezone-aware)."""
-    return datetime.now(timezone.utc)
+    """Return current UTC datetime (timezone-naive, compatible with TIMESTAMP WITHOUT TIME ZONE)."""
+    return datetime.utcnow()
