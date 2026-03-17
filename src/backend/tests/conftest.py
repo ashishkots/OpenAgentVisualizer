@@ -1,1 +1,67 @@
-# Fixtures will be added in BE6
+import pytest
+import pytest_asyncio
+from contextlib import asynccontextmanager
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+
+# ---------------------------------------------------------------------------
+# SQLite compat: patch PostgreSQL-only JSONB to plain JSON before any models
+# are imported (models use JSONB; SQLite has no native JSONB type).
+# ---------------------------------------------------------------------------
+import sqlalchemy.dialects.postgresql as _pg
+from sqlalchemy import JSON as _JSON
+
+_pg.JSONB = _JSON  # type: ignore[assignment]
+
+TEST_DB_URL = "sqlite+aiosqlite:///./test.db"
+
+
+@asynccontextmanager
+async def mock_lifespan(app):
+    """Mock lifespan that skips PostgreSQL and Redis connections during tests."""
+    yield  # Test fixtures handle DB setup
+
+
+@pytest_asyncio.fixture(scope="function")
+async def client():
+    from app.main import app
+    from app.core.database import Base, get_db
+
+    # Override lifespan to skip PostgreSQL/Redis connections
+    app.router.lifespan_context = mock_lifespan
+
+    engine = create_async_engine(TEST_DB_URL, echo=False)
+    SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async def override_db():
+        async with SessionLocal() as session:
+            try:
+                yield session
+            except Exception:
+                await session.rollback()
+                raise
+
+    app.dependency_overrides[get_db] = override_db
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        yield c
+
+    app.dependency_overrides.clear()
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def authed_client(client: AsyncClient):
+    r = await client.post("/api/auth/register", json={
+        "email": "auto@example.com",
+        "password": "testpass123",
+        "workspace_name": "Auto WS"
+    })
+    token = r.json()["access_token"]
+    client.headers.update({"Authorization": f"Bearer {token}"})
+    return client

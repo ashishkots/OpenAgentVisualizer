@@ -41,3 +41,4 @@ pytest-cov==5.0.0
 factory-boy==3.3.0
 faker==25.9.1
 testcontainers[postgres,redis]==4.0.0rc1
+aiosqlite==0.20.0
