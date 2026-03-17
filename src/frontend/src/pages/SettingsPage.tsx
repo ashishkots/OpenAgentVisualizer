@@ -34,7 +34,7 @@ const INTEGRATIONS: IntegrationConfig[] = [
 
 export function SettingsPage() {
   const [tab, setTab] = useState<Tab>('general');
-  const { data: ws } = useWorkspace();
+  const ws = useWorkspace();
   const TABS: Tab[] = ['general','workspace','integrations','api-keys','appearance','danger'];
 
   return (

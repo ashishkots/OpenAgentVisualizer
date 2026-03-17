@@ -5,6 +5,8 @@ interface WorkspaceInfo {
   name: string;
   tier: 'free' | 'team' | 'pro' | 'enterprise';
   agentCount: number;
+  /** API key returned by the backend for this workspace, if available */
+  api_key?: string;
 }
 
 const DEFAULT: WorkspaceInfo = {
@@ -32,6 +34,7 @@ export function useWorkspace(): WorkspaceInfo {
           name: data.name ?? 'Default Workspace',
           tier: data.tier ?? 'free',
           agentCount: data.agent_count ?? 0,
+          api_key: data.api_key,
         });
       })
       .catch(() => {

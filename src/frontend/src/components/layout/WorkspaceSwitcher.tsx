@@ -1,7 +1,7 @@
 import { useWorkspace } from '../../hooks/useWorkspace';
 
 export function WorkspaceSwitcher() {
-  const { data: ws } = useWorkspace();
+  const ws = useWorkspace();
   if (!ws) return <div className="skeleton h-6 w-24" />;
   return (
     <button

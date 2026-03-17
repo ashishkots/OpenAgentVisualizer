@@ -1,6 +1,5 @@
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { useWorkspace } from '../../hooks/useWorkspace';
-import type { Workspace } from '../../hooks/useWorkspace';
 
 const STEPS = [
   { title: 'Welcome to OpenAgentVisualizer', body: 'Watch your AI agents come alive in a virtual workspace.' },
@@ -12,7 +11,7 @@ const STEPS = [
 
 export function OnboardingWizard() {
   const { completed, currentStep, advance, complete, activateSampleData } = useOnboardingStore();
-  const { data: ws } = useWorkspace();
+  const ws = useWorkspace();
   if (completed) return null;
 
   const isLast = currentStep === STEPS.length;
