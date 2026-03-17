@@ -8,9 +8,23 @@ import type { IntegrationConfig } from '../types/integration';
 
 type Tab = 'general' | 'workspace' | 'integrations' | 'api-keys' | 'appearance' | 'danger';
 
-const PLUGIN_CARDS = [
-  { name: 'Claude Code Plugin', active: false, commands: ['/oav-status','/oav-agents','/oav-alerts','/oav-cost','/oav-replay','/oav-debug'], installCommand: 'oav install claude-code-plugin' },
-  { name: 'Codex Plugin', active: false, commands: ['/oav status','/oav agents','/oav alerts','/oav cost','/oav watch'], installCommand: 'oav install codex-plugin' },
+const CLI_PLUGINS = [
+  {
+    id: 'claude-code-plugin',
+    name: 'Claude Code Plugin',
+    version: '1.0.0',
+    status: 'not_installed' as const,
+    commands: ['/oav-status', '/oav-agents', '/oav-alerts', '/oav-cost', '/oav-replay', '/oav-debug'],
+    installCommand: 'oav install claude-code-plugin',
+  },
+  {
+    id: 'codex-plugin',
+    name: 'Codex Plugin',
+    version: '1.0.0',
+    status: 'not_installed' as const,
+    commands: ['/oav status', '/oav agents', '/oav alerts', '/oav cost', '/oav watch'],
+    installCommand: 'oav install codex-plugin',
+  },
 ];
 
 const INTEGRATIONS: IntegrationConfig[] = [
@@ -65,9 +79,11 @@ export function SettingsPage() {
             </div>
           </div>
           <div>
-            <p className="text-oav-muted text-xs uppercase font-semibold mb-3">CLI Plugins</p>
-            <div className="grid gap-4">
-              {PLUGIN_CARDS.map(p => <PluginCard key={p.name} {...p} />)}
+            <h3 className="text-sm font-medium text-[var(--oav-text)] mb-3">CLI Plugins</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {CLI_PLUGINS.map((plugin) => (
+                <PluginCard key={plugin.id} plugin={plugin} />
+              ))}
             </div>
           </div>
         </div>
