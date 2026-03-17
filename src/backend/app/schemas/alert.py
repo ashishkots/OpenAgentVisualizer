@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 from datetime import datetime
 
 
@@ -10,7 +10,7 @@ class AlertRead(BaseModel):
     alert_type: str
     severity: str
     message: str
-    extra_data: Optional[Any]
+    extra_data: Optional[Dict[str, Any]] = None
     resolved: bool
     created_at: datetime
 
