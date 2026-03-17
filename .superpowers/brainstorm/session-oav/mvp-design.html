@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAgentVisualizer — MVP Design</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; padding: 24px; }
+  h1 { font-size: 1.6rem; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
+  .sub { font-size: 0.9rem; color: #94a3b8; margin-bottom: 24px; }
+  h2 { font-size: 1.05rem; font-weight: 600; color: #cbd5e1; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  h3 { font-size: 0.95rem; font-weight: 600; color: #f1f5f9; margin-bottom: 6px; }
+  p, li { font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+  ul { padding-left: 16px; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; }
+  .card { background: #1e2433; border: 1px solid #2d3748; border-radius: 10px; padding: 16px; }
+  .card.be { border-top: 3px solid #3b82f6; }
+  .card.fe { border-top: 3px solid #a855f7; }
+  .card.sdk { border-top: 3px solid #10b981; }
+  .card.devops { border-top: 3px solid #f59e0b; }
+  .card.qa { border-top: 3px solid #ef4444; }
+
+  .badge { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; font-weight: 600; margin-bottom: 8px; }
+  .badge.be { background: #1e40af22; color: #60a5fa; border: 1px solid #1e40af; }
+  .badge.fe { background: #7c3aed22; color: #c084fc; border: 1px solid #7c3aed; }
+  .badge.sdk { background: #065f4622; color: #34d399; border: 1px solid #065f46; }
+  .badge.devops { background: #92400e22; color: #fbbf24; border: 1px solid #92400e; }
+  .badge.qa { background: #7f1d1d22; color: #f87171; border: 1px solid #7f1d1d; }
+  .badge.parallel { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+
+  .arch { background: #141720; border: 1px solid #2d3748; border-radius: 10px; padding: 20px; margin-bottom: 24px; font-family: 'Courier New', monospace; font-size: 0.78rem; color: #7dd3fc; overflow-x: auto; }
+  .arch .dim { color: #475569; }
+  .arch .hi { color: #f0abfc; }
+  .arch .gr { color: #86efac; }
+  .arch .ye { color: #fde68a; }
+
+  .features { background: #1e2433; border: 1px solid #2d3748; border-radius: 10px; padding: 16px; margin-bottom: 24px; }
+  .feat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+  .feat { background: #141720; border-radius: 8px; padding: 10px; border: 1px solid #2d3748; }
+  .feat .icon { font-size: 1.3rem; margin-bottom: 4px; }
+  .feat h4 { font-size: 0.8rem; color: #e2e8f0; margin-bottom: 4px; }
+  .feat p { font-size: 0.75rem; color: #64748b; }
+
+  .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
+  .phase { background: #1e2433; border-radius: 10px; padding: 14px; border: 1px solid #2d3748; text-align: center; position: relative; }
+  .phase .num { font-size: 1.4rem; font-weight: 700; color: #3b82f6; margin-bottom: 4px; }
+  .phase h4 { font-size: 0.82rem; font-weight: 600; color: #e2e8f0; margin-bottom: 6px; }
+  .phase p { font-size: 0.76rem; color: #64748b; }
+
+  .stack-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .tag { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 3px 8px; font-size: 0.76rem; color: #94a3b8; }
+
+  .section-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; margin-bottom: 10px; margin-top: 20px; }
+
+  .approve-row { display: flex; gap: 12px; margin-top: 24px; justify-content: center; }
+  .btn { padding: 10px 28px; border-radius: 8px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .btn-approve { background: #22c55e; color: #fff; }
+  .btn-approve:hover { background: #16a34a; }
+  .btn-change { background: #1e2433; color: #94a3b8; border: 1px solid #334155; }
+  .btn-change:hover { background: #2d3748; }
+</style>
+</head>
+<body>
+
+<h1>OpenAgentVisualizer — MVP Design Overview</h1>
+<p class="sub">Full parallel build · 3 subagents · Web app + Python SDK · Docker Compose · 8-week roadmap</p>
+
+<!-- Architecture -->
+<div class="section-label">System Architecture</div>
+<div class="arch">
+<span class="dim">┌─ Agent Frameworks ──────────────────────────────────────────────┐</span>
+  LangChain  │  CrewAI  │  AutoGen  │  OpenAI  │  Anthropic / Ollama
+<span class="dim">└─────────────────────────┬───────────────────────────────────────┘</span>
+                          <span class="gr">│  OAV Python SDK  (3 lines of code)</span>
+                          <span class="dim">│  OTLP gRPC:4317 / HTTP:4318</span>
+<span class="dim">┌─────────────────────────┼───────────────────────────────────────┐</span>
+<span class="dim">│</span>          <span class="hi">NGINX</span>  /api/* → FastAPI   /ws/* → WebSocket   /otlp/*
+<span class="dim">│</span>   <span class="ye">FastAPI :8000</span>   │   <span class="ye">WebSocket :8001</span>   │   <span class="ye">OTLP Gateway :4317</span>
+<span class="dim">│</span>                   Redis Streams + Pub/Sub (Event Bus)
+<span class="dim">│</span>   <span class="gr">Persist Writer</span>  │  <span class="gr">Aggregation Engine</span>  │  <span class="gr">Celery Workers</span>
+<span class="dim">│</span>       <span class="ye">PostgreSQL 16 + TimescaleDB</span>   │   <span class="ye">Redis Cache</span>
+<span class="dim">└──────────────────────────────────────────────────────────────────┘</span>
+                          <span class="dim">│  WebSocket / HTTPS</span>
+<span class="dim">┌─────────────────────────┼───────────────────────────────────────┐</span>
+<span class="dim">│</span>  <span class="hi">React 18</span> + <span class="hi">PixiJS v8</span>  Virtual World Canvas (WebGL/WebGPU)
+<span class="dim">│</span>  <span class="hi">Rive</span> animations · <span class="hi">XState v5</span> agent FSM · <span class="hi">Zustand</span> UI state
+<span class="dim">│</span>  <span class="hi">Recharts</span> dashboards · <span class="hi">React Flow</span> topology · <span class="hi">GSAP</span> transitions
+<span class="dim">└──────────────────────────────────────────────────────────────────┘</span>
+</div>
+
+<!-- MVP Features -->
+<div class="section-label">MVP Features (Wave 1 of 3)</div>
+<div class="features">
+  <div class="feat-grid">
+    <div class="feat"><div class="icon">🌍</div><h4>Virtual World</h4><p>Isometric 2D office, agent avatars, semantic zoom, real-time positions</p></div>
+    <div class="feat"><div class="icon">🤖</div><h4>Agent Avatars</h4><p>Animated characters: idle, working, thinking, communicating, error states</p></div>
+    <div class="feat"><div class="icon">⚡</div><h4>Real-Time Events</h4><p>WebSocket push, &lt;500ms SDK-to-screen, Redis fanout, 100K events/sec</p></div>
+    <div class="feat"><div class="icon">🎮</div><h4>XP &amp; Leveling</h4><p>XP earn per task, level-up animations, agent progression (Rookie → Legend)</p></div>
+    <div class="feat"><div class="icon">💰</div><h4>Cost Tracking</h4><p>Per-agent token usage, cost per task, daily/weekly breakdowns</p></div>
+    <div class="feat"><div class="icon">🔄</div><h4>Session Replay</h4><p>Rewind &amp; replay any session — watch exactly what agents did</p></div>
+    <div class="feat"><div class="icon">🔁</div><h4>Loop Detection</h4><p>Automatic loop alerts — prevents runaway $47K incidents</p></div>
+    <div class="feat"><div class="icon">🐍</div><h4>Python SDK</h4><p>3-line integration, LangChain/CrewAI/AutoGen/OpenAI/Anthropic adapters</p></div>
+  </div>
+</div>
+
+<!-- Parallel Agents -->
+<div class="section-label">Parallel Build — 3 Subagents + DevOps Convergence</div>
+<div class="grid3">
+  <div class="card be">
+    <span class="badge be">Backend Expert · Stage 2.2b</span>
+    <h3>FastAPI Backend</h3>
+    <ul>
+      <li>FastAPI + Uvicorn (REST + WS)</li>
+      <li>PostgreSQL 16 + TimescaleDB</li>
+      <li>Redis Streams + Pub/Sub</li>
+      <li>OTLP gRPC/HTTP ingestion</li>
+      <li>Celery background workers</li>
+      <li>JWT auth + workspace model</li>
+      <li>Gamification engine (XP, levels)</li>
+      <li>Loop detector, cost aggregation</li>
+      <li>Alembic migrations</li>
+      <li>Pytest test suite</li>
+    </ul>
+    <div class="stack-row" style="margin-top:10px;">
+      <span class="tag">Python 3.12</span><span class="tag">FastAPI 0.110</span><span class="tag">SQLAlchemy 2</span><span class="tag">asyncpg</span><span class="tag">bcrypt 4.0.1</span>
+    </div>
+  </div>
+
+  <div class="card fe">
+    <span class="badge fe">Frontend Expert · Stage 2.2a</span>
+    <h3>React + PixiJS World</h3>
+    <ul>
+      <li>Vite + React 18 + TypeScript</li>
+      <li>PixiJS v8 isometric canvas</li>
+      <li>Rive state-machine avatars</li>
+      <li>XState v5 agent FSM</li>
+      <li>Zustand global state</li>
+      <li>WebSocket real-time hook</li>
+      <li>GSAP transitions</li>
+      <li>Recharts dashboards</li>
+      <li>Tailwind + design tokens</li>
+      <li>Vitest + React Testing Library</li>
+    </ul>
+    <div class="stack-row" style="margin-top:10px;">
+      <span class="tag">React 18</span><span class="tag">PixiJS v8</span><span class="tag">Rive</span><span class="tag">XState v5</span><span class="tag">Tailwind</span>
+    </div>
+  </div>
+
+  <div class="card sdk">
+    <span class="badge sdk">Fullstack Expert · Stage 2.3</span>
+    <h3>Python SDK + Docker</h3>
+    <ul>
+      <li>openagentvisualizer Python package</li>
+      <li>@agent decorator (3 lines of code)</li>
+      <li>LangChain callback handler</li>
+      <li>CrewAI agent wrapper</li>
+      <li>AutoGen observer</li>
+      <li>OpenAI + Anthropic adapters</li>
+      <li>Ring buffer + PII redaction</li>
+      <li>OTLP exporter (gRPC + HTTP)</li>
+      <li>Docker Compose full stack</li>
+      <li>Nginx reverse proxy config</li>
+    </ul>
+    <div class="stack-row" style="margin-top:10px;">
+      <span class="tag">Python SDK</span><span class="tag">OTLP</span><span class="tag">Docker</span><span class="tag">Nginx</span><span class="tag">CI/CD</span>
+    </div>
+  </div>
+</div>
+
+<!-- Code Reviewer + QA + DevOps -->
+<div class="section-label">Gate Stages — Sequential After Parallel Build</div>
+<div class="grid3">
+  <div class="card" style="border-top:3px solid #e879f9;">
+    <span class="badge" style="background:#4a044e22;color:#e879f9;border-color:#4a044e;">Code Reviewer · Stage 2.3</span>
+    <h3>Code Review Gate</h3>
+    <p>superpowers:code-reviewer reviews all three parallel outputs. Must PASS before QA starts.</p>
+  </div>
+  <div class="card qa">
+    <span class="badge qa">QA Engineer · Stage 2.4</span>
+    <h3>QA Gate</h3>
+    <p>Docker Compose smoke tests, API contract tests, WebSocket integration tests, SDK end-to-end tests. 1500+ test cases from QA plan.</p>
+  </div>
+  <div class="card devops">
+    <span class="badge devops">DevOps · Convergence</span>
+    <h3>DevOps Convergence</h3>
+    <p>Final docker-compose.yml wiring, GitHub Actions CI (workflow_dispatch), .env setup, local run verification.</p>
+  </div>
+</div>
+
+<!-- Repo Setup -->
+<div class="section-label">Repo &amp; Infrastructure</div>
+<div class="grid2">
+  <div class="card">
+    <h3>📁 Folder Structure</h3>
+    <div style="font-family:monospace;font-size:0.8rem;color:#7dd3fc;margin-top:8px;line-height:1.8;">
+      OpenAgentVisualizer/<br>
+      ├── src/backend/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← FastAPI app<br>
+      ├── src/frontend/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← React + PixiJS<br>
+      ├── src/sdk/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Python SDK<br>
+      ├── docker-compose.yml<br>
+      ├── nginx/nginx.conf<br>
+      ├── .github/workflows/&nbsp;← CI (manual)<br>
+      └── Product_Documents/&nbsp;← Planning docs
+    </div>
+  </div>
+  <div class="card">
+    <h3>🐳 Docker Services</h3>
+    <div style="font-family:monospace;font-size:0.8rem;color:#7dd3fc;margin-top:8px;line-height:1.8;">
+      postgres:16-alpine&nbsp;&nbsp;+ TimescaleDB<br>
+      redis:7.2-alpine<br>
+      backend:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FastAPI :8000<br>
+      websocket:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WS server :8001<br>
+      otlp-gateway:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:4317/:4318<br>
+      celery-worker:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;background tasks<br>
+      frontend:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;React/Vite :3000<br>
+      nginx:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reverse proxy :80
+    </div>
+  </div>
+</div>
+
+<!-- Approve -->
+<div style="background:#1e2433;border:1px solid #2d3748;border-radius:10px;padding:16px;margin-bottom:16px;">
+  <h3 style="margin-bottom:8px;">✅ Does this design look right?</h3>
+  <p>If approved, we'll write the implementation plan spec and kick off the 3 parallel subagents (Backend Expert + Frontend Expert + SDK/DevOps). Review in terminal or click below.</p>
+</div>
+
+</body>
+</html>

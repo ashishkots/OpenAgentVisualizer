@@ -1,0 +1,40 @@
+<h2>OpenAgentVisualizer — Where should we start?</h2>
+<p class="subtitle">All 14 planning documents are complete. Time to write code. Choose the starting scope for development.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>MVP Core — Web App Only <span style="color:#4ade80;font-size:0.75em;margin-left:8px;">RECOMMENDED</span></h3>
+      <p>Build the full web MVP in one focused effort: FastAPI backend + PostgreSQL/Redis/TimescaleDB + React+PixiJS virtual world + Python SDK. This is the 8-week roadmap described in the README — virtual world, agent avatars, real-time status, XP/leveling, basic metrics, session replay.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Ship something real and usable</li><li>Web-first = broadest reach</li><li>All planning docs cover this completely</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Largest scope upfront</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Backend First — API + Ingestion Core</h3>
+      <p>Build the FastAPI backend, WebSocket server, OTLP ingestion, PostgreSQL/Redis schema, and Python SDK first — before any frontend. Gives a working data pipeline that can be validated with curl/Postman before the visual layer is built.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul><li>De-risks data pipeline early</li><li>SDK usable immediately for agent instrumentation</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>No visual output until frontend done</li><li>Harder to demo</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Vertical Slice — One Agent, End to End</h3>
+      <p>Build the thinnest possible slice that works end-to-end: one Python SDK call → backend ingest → WebSocket push → single animated agent avatar in the browser. No gamification, no dashboards — just the core loop proven from SDK to screen.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Fastest path to a working demo</li><li>Validates the whole architecture at once</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Not shippable on its own</li><li>Requires subsequent phases to fill in features</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
