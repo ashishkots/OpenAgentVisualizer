@@ -4,14 +4,15 @@ from contextlib import asynccontextmanager
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-# ---------------------------------------------------------------------------
-# SQLite compat: patch PostgreSQL-only JSONB to plain JSON before any models
-# are imported (models use JSONB; SQLite has no native JSONB type).
-# ---------------------------------------------------------------------------
-import sqlalchemy.dialects.postgresql as _pg
-from sqlalchemy import JSON as _JSON
 
-_pg.JSONB = _JSON  # type: ignore[assignment]
+def pytest_configure(config):
+    """Patch postgresql.JSONB → JSON for SQLite test compatibility.
+    Must run before any model imports during collection.
+    """
+    import sqlalchemy.dialects.postgresql as _pg
+    from sqlalchemy import JSON as _JSON
+    _pg.JSONB = _JSON  # type: ignore[assignment]
+
 
 TEST_DB_URL = "sqlite+aiosqlite:///./test.db"
 
@@ -62,6 +63,7 @@ async def authed_client(client: AsyncClient):
         "password": "testpass123",
         "workspace_name": "Auto WS"
     })
+    assert r.status_code == 201, f"Registration failed: {r.text}"  # add assertion
     token = r.json()["access_token"]
     client.headers.update({"Authorization": f"Bearer {token}"})
     return client

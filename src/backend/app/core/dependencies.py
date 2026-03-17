@@ -2,12 +2,9 @@ from fastapi import Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_db
-from app.core.security import decode_token
+from app.core.security import decode_token, pwd_context as _pwd_ctx
 from app.models.user import User, APIKey
-from passlib.context import CryptContext
 from jose import JWTError
-
-_pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 async def get_current_user(
@@ -32,7 +29,11 @@ async def get_workspace_id_from_api_key(
     db: AsyncSession = Depends(get_db),
 ) -> str:
     if x_api_key:
-        result = await db.execute(select(APIKey).where(APIKey.is_active == True))
+        result = await db.execute(
+            select(APIKey)
+            .where(APIKey.is_active == True)
+            .limit(50)  # Hard ceiling: bcrypt is slow; unbounded loop is a DoS vector
+        )
         keys = result.scalars().all()
         for key in keys:
             if _pwd_ctx.verify(x_api_key, key.key_hash):

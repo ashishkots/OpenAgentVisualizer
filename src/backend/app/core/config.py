@@ -26,3 +26,11 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+import warnings as _warnings
+if settings.SEED_PASSWORD == "kots@123":
+    _warnings.warn(
+        "SEED_PASSWORD is set to the insecure default. Set a strong SEED_PASSWORD environment variable before deploying.",
+        UserWarning,
+        stacklevel=1,
+    )
