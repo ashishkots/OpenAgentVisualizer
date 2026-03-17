@@ -1,10 +1,10 @@
-from sqlalchemy import String, Integer, Float, Index
+from sqlalchemy import String, Integer, Numeric, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 import uuid
 from typing import Optional, Dict, Any
 from app.core.database import Base
-from app.models.user import utcnow
+from app.core.utils import utcnow
 
 
 class MetricsRaw(Base):
@@ -19,7 +19,7 @@ class MetricsRaw(Base):
     prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
     completion_tokens: Mapped[int] = mapped_column(Integer, default=0)
     total_tokens: Mapped[int] = mapped_column(Integer, default=0)
-    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    cost_usd: Mapped[float] = mapped_column(Numeric(12, 8), default=0.0)
     timestamp: Mapped[datetime] = mapped_column(default=utcnow)
 
 
@@ -32,5 +32,5 @@ class MetricsAgg(Base):
     agent_id: Mapped[str] = mapped_column(String, nullable=False)
     bucket: Mapped[datetime] = mapped_column(nullable=False)
     total_tokens: Mapped[int] = mapped_column(Integer, default=0)
-    total_cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    total_cost_usd: Mapped[float] = mapped_column(Numeric(12, 8), default=0.0)
     task_count: Mapped[int] = mapped_column(Integer, default=0)

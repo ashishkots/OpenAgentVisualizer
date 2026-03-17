@@ -5,7 +5,7 @@ from datetime import datetime
 import uuid
 from typing import Optional, List, Dict, Any
 from app.core.database import Base
-from app.models.user import utcnow
+from app.core.utils import utcnow
 
 
 class Event(Base):
@@ -37,9 +37,10 @@ class Span(Base):
     attributes: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, nullable=True)
 
 
-class Session(Base):
+class AgentSession(Base):
     """Replay sessions."""
     __tablename__ = "sessions"
+    __table_args__ = (Index("ix_sessions_workspace_id", "workspace_id"),)
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(String, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False, default="")

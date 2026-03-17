@@ -1,15 +1,16 @@
-from sqlalchemy import String, Integer, Boolean
+from sqlalchemy import String, Integer, Boolean, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
 import uuid
 from typing import Optional, Dict, Any
 from app.core.database import Base
-from app.models.user import utcnow
+from app.core.utils import utcnow
 
 
 class XPTransaction(Base):
     __tablename__ = "xp_transactions"
+    __table_args__ = (Index("ix_xp_transactions_workspace_id", "workspace_id"),)
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(String, nullable=False)
     agent_id: Mapped[str] = mapped_column(String, nullable=False)
@@ -21,6 +22,7 @@ class XPTransaction(Base):
 
 class Alert(Base):
     __tablename__ = "alerts"
+    __table_args__ = (Index("ix_alerts_workspace_id", "workspace_id"),)
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(String, nullable=False)
     agent_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)

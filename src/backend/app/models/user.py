@@ -4,10 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List
 from app.core.database import Base
-
-
-def utcnow():
-    return datetime.now(timezone.utc)
+from app.core.utils import utcnow
 
 
 class Workspace(Base):
