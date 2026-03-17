@@ -25,12 +25,10 @@ export const useModeStore = create<ModeStore>()(
           }).catch(() => {});
         }
       },
-      toggle: () =>
-        set((s) => {
-          const next = s.mode === 'gamified' ? 'professional' : 'gamified';
-          document.documentElement.setAttribute('data-mode', next);
-          return { mode: next };
-        }),
+      toggle: () => {
+        const current = useModeStore.getState().mode;
+        useModeStore.getState().setMode(current === 'gamified' ? 'professional' : 'gamified');
+      },
     }),
     { name: 'oav-mode' }
   )

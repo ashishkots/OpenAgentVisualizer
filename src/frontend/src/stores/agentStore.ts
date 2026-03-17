@@ -6,7 +6,7 @@ interface AgentStore {
   positions: Record<string, AgentPosition>;
   upsertAgent: (agent: Agent) => void;
   setAgents: (agents: Agent[]) => void;
-  updateAgent: (agent: Agent) => void;
+  updateAgent: (agent: Partial<Agent> & { id: string }) => void;
   setAgentStatus: (agentId: string, status: AgentStatus) => void;
   setAgentPosition: (pos: AgentPosition) => void;
   reset: () => void;
@@ -20,7 +20,9 @@ export const useAgentStore = create<AgentStore>((set) => ({
     set({
       agents: Object.fromEntries(agents.map((a) => [a.id, a])),
     }),
-  updateAgent: (agent) => set((s) => ({ agents: { ...s.agents, [agent.id]: agent } })),
+  updateAgent: (agent) => set((s) => ({
+    agents: { ...s.agents, [agent.id]: { ...s.agents[agent.id], ...agent } as Agent }
+  })),
   setAgentStatus: (agentId, status) =>
     set((s) => ({
       agents: s.agents[agentId]

@@ -1,14 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '../services/api';
+
+export interface SessionSummary {
+  id: string;
+  started_at: string;
+  ended_at?: string;
+  agent_count?: number;
+}
+
 export function useSessionReplay() {
   const query = useQuery({
     queryKey: ['sessions'],
-    queryFn: async () => {
-      const token = localStorage.getItem('oav_token') ?? '';
-      const r = await fetch('/api/replay/sessions?limit=20', { headers: { Authorization: `Bearer ${token}` } });
-      if (!r.ok) throw new Error('Failed to fetch sessions');
-      return r.json();
-    },
+    queryFn: () => apiClient.get('/api/replay/sessions?limit=20').then(r => r.data),
     staleTime: 10_000,
   });
-  return { sessions: (query.data ?? []) as any[], isLoading: query.isLoading };
+  return { sessions: (query.data ?? []) as SessionSummary[], isLoading: query.isLoading };
 }

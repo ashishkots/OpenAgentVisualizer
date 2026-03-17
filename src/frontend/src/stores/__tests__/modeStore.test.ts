@@ -15,4 +15,10 @@ describe('modeStore', () => {
     useModeStore.getState().setMode('professional');
     expect(document.documentElement.getAttribute('data-mode')).toBe('professional');
   });
+  it('toggle flips mode and sets data-mode attr', () => {
+    useModeStore.setState({ mode: 'gamified' });
+    useModeStore.getState().toggle();
+    expect(useModeStore.getState().mode).toBe('professional');
+    expect(document.documentElement.getAttribute('data-mode')).toBe('professional');
+  });
 });
