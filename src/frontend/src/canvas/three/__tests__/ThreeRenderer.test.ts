@@ -51,3 +51,27 @@ describe('OfficeFloor', () => {
     expect(OfficeFloor).toBeDefined();
   });
 });
+
+describe('AgentDesk', () => {
+  it('can be imported', async () => {
+    const { AgentDesk } = await import('../AgentDesk');
+    expect(AgentDesk).toBeDefined();
+  });
+
+  it('instantiates with mock agent and does not throw', async () => {
+    const { AgentDesk } = await import('../AgentDesk');
+    const { Scene } = await import('three');
+    const scene = new Scene();
+    const agent = { id: 'a1', name: 'Agent-1', status: 'working', xp: 0, tokens_per_second: 5, position: { x: 2, y: 3 } };
+    expect(() => new AgentDesk(scene as any, agent as any)).not.toThrow();
+  });
+
+  it('update() does not throw', async () => {
+    const { AgentDesk } = await import('../AgentDesk');
+    const { Scene } = await import('three');
+    const scene = new Scene();
+    const agent = { id: 'a1', name: 'Agent-1', status: 'idle', xp: 0, tokens_per_second: 0, position: { x: 0, y: 0 } };
+    const desk = new AgentDesk(scene as any, agent as any);
+    expect(() => desk.update({ ...agent, status: 'error' } as any)).not.toThrow();
+  });
+});
