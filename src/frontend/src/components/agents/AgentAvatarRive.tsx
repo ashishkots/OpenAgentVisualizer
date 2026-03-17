@@ -31,7 +31,7 @@ export function AgentAvatarRive({ avatarId, status, xpLevel, isSelected, onCeleb
   const selectedInput  = useStateMachineInput(rive, 'MainMachine', 'isSelected');
   const celebrateInput = useStateMachineInput(rive, 'MainMachine', 'triggerCelebrate');
 
-  useEffect(() => { if (statusInput)   statusInput.value   = STATUS_TO_IDX[status] ?? 'idle'; }, [status, statusInput]);
+  useEffect(() => { if (statusInput)   (statusInput as { value: unknown }).value   = STATUS_TO_IDX[status] ?? 'idle'; }, [status, statusInput]);
   useEffect(() => { if (xpInput)       xpInput.value       = xpLevel; }, [xpLevel, xpInput]);
   useEffect(() => { if (selectedInput) selectedInput.value = isSelected; }, [isSelected, selectedInput]);
   useEffect(() => { if (onCelebrate && celebrateInput) celebrateInput.fire?.(); }, [onCelebrate, celebrateInput]);
