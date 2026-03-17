@@ -16,6 +16,7 @@ export function WorldCanvas({ workspaceId }: Props) {
   useEffect(() => {
     if (!containerRef.current) return;
     let cancelled = false;
+    let initialized = false;
     const app = new Application();
     appRef.current = app;
 
@@ -26,7 +27,12 @@ export function WorldCanvas({ workspaceId }: Props) {
         antialias: true,
       })
       .then(() => {
-        if (cancelled || !containerRef.current) return;
+        if (cancelled || !containerRef.current) {
+          // init completed after unmount — destroy safely now
+          try { app.destroy(true); } catch { /* ignore */ }
+          return;
+        }
+        initialized = true;
         containerRef.current.appendChild(app.canvas);
         const renderer = new WorldRenderer(app);
         rendererRef.current = renderer;
@@ -35,7 +41,9 @@ export function WorldCanvas({ workspaceId }: Props) {
 
     return () => {
       cancelled = true;
-      appRef.current?.destroy(true);
+      if (initialized) {
+        try { appRef.current?.destroy(true); } catch { /* ignore */ }
+      }
       appRef.current = null;
       rendererRef.current = null;
     };
