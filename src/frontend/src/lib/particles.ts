@@ -6,7 +6,7 @@ export function emitXPGain(x: number, y: number): void {
     el.textContent = '+XP';
     el.style.cssText = `
       position: fixed;
-      left: ${x}px;
+      left: ${x + (Math.random() - 0.5) * 40}px;
       top: ${y}px;
       pointer-events: none;
       font-size: 12px;
@@ -14,7 +14,6 @@ export function emitXPGain(x: number, y: number): void {
       color: var(--oav-accent, #22d3ee);
       animation: float-up 0.8s ease-out forwards;
       animation-delay: ${i * 0.08}s;
-      transform: translateX(${(Math.random() - 0.5) * 40}px);
       z-index: 9999;
     `;
     document.body.appendChild(el);
