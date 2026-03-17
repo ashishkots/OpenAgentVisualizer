@@ -19,8 +19,8 @@ export class WorldRenderer {
   }
 
   init() {
-    const centerX = this.app.screen?.width / 2 ?? 400;
-    const centerY = (this.app.screen?.height ?? 400) / 4;
+    const centerX = (this.app.screen.width ?? 800) / 2;
+    const centerY = (this.app.screen.height ?? 400) / 4;
     this.grid.draw(centerX, centerY);
     this.app.stage.addChild(this.grid.view);
   }
@@ -35,7 +35,7 @@ export class WorldRenderer {
   }
 
   worldToScreenPos(wx: number, wy: number): { x: number; y: number } {
-    const centerX = this.app.screen?.width / 2 ?? 400;
+    const centerX = (this.app.screen.width ?? 800) / 2;
     const centerY = (this.app.screen?.height ?? 400) / 4;
     return worldToScreen(wx, wy, { tileW: TILE_W, tileH: TILE_H, originX: centerX, originY: centerY });
   }

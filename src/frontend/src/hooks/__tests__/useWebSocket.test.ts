@@ -50,6 +50,6 @@ describe('useWebSocket', () => {
 
   it('does not connect when workspaceId is null', () => {
     renderHook(() => useWebSocket(null));
-    expect(global.WebSocket).not.toHaveBeenCalled();
+    expect((globalThis as typeof globalThis & { WebSocket: unknown }).WebSocket).not.toHaveBeenCalled();
   });
 });
