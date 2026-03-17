@@ -1,5 +1,6 @@
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { useWorkspace } from '../../hooks/useWorkspace';
+import type { Workspace } from '../../hooks/useWorkspace';
 
 const STEPS = [
   { title: 'Welcome to OpenAgentVisualizer', body: 'Watch your AI agents come alive in a virtual workspace.' },
@@ -14,7 +15,7 @@ export function OnboardingWizard() {
   const { data: ws } = useWorkspace();
   if (completed) return null;
 
-  const isLast = currentStep === 5;
+  const isLast = currentStep === STEPS.length;
   const handleNext = () => {
     if (isLast) { activateSampleData(); complete(); }
     else advance();
@@ -36,7 +37,7 @@ export function OnboardingWizard() {
           {currentStep === 3 && ws && (
             <div className="mt-3 rounded-lg px-3 py-2 font-mono text-xs"
               style={{ background: 'var(--oav-surface-2)', color: 'var(--oav-accent)' }}>
-              {(ws as any).api_key}
+              {ws.api_key}
             </div>
           )}
         </div>

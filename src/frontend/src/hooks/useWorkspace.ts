@@ -5,7 +5,8 @@ export interface Workspace {
   id: string;
   name: string;
   slug: string;
-  created_at: string;
+  tier: 'free' | 'pro' | 'team' | 'business' | 'enterprise';
+  api_key: string;
 }
 
 export function useWorkspace() {
