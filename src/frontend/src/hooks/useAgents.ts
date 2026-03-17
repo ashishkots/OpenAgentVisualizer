@@ -1,10 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAgents } from '../services/agentApi';
-
-export function useAgents() {
+export function useAgents(workspaceId = 'default') {
   return useQuery({
-    queryKey: ['agents'],
-    queryFn: getAgents,
-    staleTime: 30_000,
+    queryKey: ['agents', workspaceId],
+    queryFn: async () => {
+      const token = localStorage.getItem('oav_token') ?? '';
+      const r = await fetch(`/api/agents?workspace_id=${workspaceId}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) throw new Error('Failed to fetch agents');
+      return r.json();
+    },
+    refetchInterval: 5000,
   });
 }

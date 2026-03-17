@@ -1,27 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../services/api';
-import type { AlertType } from '../types/gamification';
-
+import { useQuery } from '@tanstack/react-query';
 export function useAlerts() {
   return useQuery({
     queryKey: ['alerts'],
     queryFn: async () => {
-      const { data } = await apiClient.get<AlertType[]>('/api/alerts');
-      return data;
+      const token = localStorage.getItem('oav_token') ?? '';
+      const r = await fetch('/api/alerts?limit=50', { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) throw new Error('Failed to fetch alerts');
+      return r.json();
     },
-    staleTime: 30_000,
-  });
-}
-
-export function useResolveAlert() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (alertId: string) => {
-      const { data } = await apiClient.patch(`/api/alerts/${alertId}`);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['alerts'] });
-    },
+    refetchInterval: 10000,
   });
 }

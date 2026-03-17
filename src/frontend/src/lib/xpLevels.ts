@@ -1,4 +1,5 @@
 export const XP_THRESHOLDS = [0, 500, 1500, 3500, 7500, 15000, 30000, 60000, 100000, 200000];
+export { XP_THRESHOLDS as THRESHOLDS };
 
 export const LEVEL_NAMES = [
   'Rookie',
