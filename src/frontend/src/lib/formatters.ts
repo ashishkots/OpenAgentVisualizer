@@ -3,7 +3,7 @@ export function formatCost(usd: number | undefined | null): string {
   if (n >= 1000) {
     return `$${(n / 1000).toFixed(2)}K`;
   }
-  return `$${n.toFixed(2)}`;
+  return `$${n.toFixed(4)}`;
 }
 
 export function formatTokens(tokens: number | undefined | null): string {

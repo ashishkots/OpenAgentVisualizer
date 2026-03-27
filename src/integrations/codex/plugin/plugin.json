@@ -1,0 +1,20 @@
+{
+  "name": "oav",
+  "displayName": "OpenAgentVisualizer",
+  "version": "1.0.0",
+  "description": "Observe your Codex sessions as OAV agent traces in real time",
+  "entrypoint": "middleware/telemetry.js",
+  "commands": {
+    "oav": {
+      "description": "OpenAgentVisualizer commands",
+      "subcommands": {
+        "status":  "commands/oav-status.js",
+        "agents":  "commands/oav-agents.js",
+        "alerts":  "commands/oav-alerts.js",
+        "cost":    "commands/oav-cost.js",
+        "watch":   "commands/oav-watch.js"
+      }
+    }
+  },
+  "env": ["OAV_API_KEY", "OAV_ENDPOINT"]
+}

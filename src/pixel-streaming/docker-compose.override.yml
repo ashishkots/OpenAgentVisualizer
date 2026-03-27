@@ -1,0 +1,12 @@
+# Extend the main docker-compose.yml with Pro/Enterprise services.
+# Usage: docker compose --profile pro -f docker-compose.yml -f src/pixel-streaming/docker-compose.override.yml up
+version: "3.9"
+services:
+  signalling-server:
+    build: ./src/pixel-streaming/signalling-server
+    ports:
+      - "8888:8888"
+    profiles: ["pro", "enterprise"]
+    restart: unless-stopped
+    environment:
+      PORT: "8888"

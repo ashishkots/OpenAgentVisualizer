@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAgents } from '../services/agentApi';
+import { apiClient } from '../services/api';
 
-export function useAgents() {
+export function useAgents(workspaceId = 'default') {
   return useQuery({
-    queryKey: ['agents'],
-    queryFn: getAgents,
-    staleTime: 30_000,
+    queryKey: ['agents', workspaceId],
+    queryFn: () => apiClient.get(`/api/agents?workspace_id=${workspaceId}`).then(r => r.data),
+    refetchInterval: 5000,
   });
 }

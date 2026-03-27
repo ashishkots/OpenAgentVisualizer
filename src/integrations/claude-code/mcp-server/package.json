@@ -1,0 +1,22 @@
+{
+  "name": "@openagentvisualizer/mcp-server",
+  "version": "1.0.0",
+  "description": "OpenAgentVisualizer MCP server for Claude Code",
+  "type": "module",
+  "bin": {"oav-mcp": "./dist/index.js"},
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "tsx": "^4.7.0",
+    "vitest": "^1.6.0",
+    "@types/node": "^20.0.0"
+  }
+}

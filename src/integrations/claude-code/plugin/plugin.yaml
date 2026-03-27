@@ -1,0 +1,20 @@
+name: oav
+display_name: OpenAgentVisualizer
+version: 1.0.0
+description: Observe, debug, and optimize your AI agents directly from Claude Code
+author: OpenAgentVisualizer
+permissions:
+  - network: [localhost]
+  - env: [OAV_API_KEY, OAV_ENDPOINT]
+  - read: [~/.oav/config.json]
+skills:
+  - skills/oav-status.md
+  - skills/oav-agents.md
+  - skills/oav-alerts.md
+  - skills/oav-cost.md
+  - skills/oav-replay.md
+  - skills/oav-debug.md
+hooks:
+  SessionStart: hooks/session-start.sh
+  Stop: hooks/session-stop.sh
+statusline: statusline/status.sh

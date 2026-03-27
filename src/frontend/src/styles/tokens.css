@@ -1,0 +1,49 @@
+/* Professional Mode (default) */
+[data-mode="professional"], :root {
+  --oav-bg: #0A0A0A;
+  --oav-surface: #111111;
+  --oav-surface-2: #1A1A1A;
+  --oav-border: rgba(255,255,255,0.08);
+  --oav-text: #FAFAFA;
+  --oav-muted: #71717A;
+  --oav-accent: #6366F1;
+  --oav-accent-2: #FFFFFF;
+  --oav-success: #22C55E;
+  --oav-error: #EF4444;
+  --oav-warning: #F59E0B;
+  --oav-glass-bg: rgba(255,255,255,0.03);
+  --oav-glass-border: rgba(255,255,255,0.06);
+  --oav-focus: #6366F1;
+  --oav-disabled: rgba(255,255,255,0.12);
+  --oav-disabled-text: #3F3F46;
+  --oav-skeleton: #1C1C1C;
+  --oav-skeleton-shine: #2A2A2A;
+  --oav-selected: rgba(99,102,241,0.15);
+  --oav-hover: rgba(255,255,255,0.04);
+  --oav-glow: transparent;
+}
+
+/* Gamified Mode */
+[data-mode="gamified"] {
+  --oav-bg: #0F1117;
+  --oav-surface: #1A1D2E;
+  --oav-surface-2: #242842;
+  --oav-border: rgba(99,102,241,0.3);
+  --oav-text: #E2E8F0;
+  --oav-muted: #64748B;
+  --oav-accent: #00FFB2;
+  --oav-accent-2: #6366F1;
+  --oav-success: #22C55E;
+  --oav-error: #EF4444;
+  --oav-warning: #F59E0B;
+  --oav-glass-bg: rgba(255,255,255,0.02);
+  --oav-glass-border: rgba(99,102,241,0.2);
+  --oav-focus: #00FFB2;
+  --oav-disabled: rgba(255,255,255,0.08);
+  --oav-disabled-text: #2D3150;
+  --oav-skeleton: #1E2236;
+  --oav-skeleton-shine: #2A2F4A;
+  --oav-selected: rgba(0,255,178,0.12);
+  --oav-hover: rgba(255,255,255,0.06);
+  --oav-glow: rgba(0,255,178,0.15);
+}
