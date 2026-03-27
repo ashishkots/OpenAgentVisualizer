@@ -6,7 +6,7 @@ import logging
 from typing import Optional
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, HTTPException, Form, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -273,11 +273,12 @@ async def upsert_sso_config(
     "/api/v1/sso/config",
     status_code=204,
     summary="Delete SSO configuration",
+    response_class=Response,
 )
 async def delete_sso_config(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> None:
+):
     from app.core.dependencies import get_workspace_id as _get_workspace_id
     workspace_id = await _get_workspace_id(current_user, db)
     config = await db.scalar(
