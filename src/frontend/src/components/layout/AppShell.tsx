@@ -26,6 +26,8 @@ import {
   Sparkles,
   ShoppingBag,
   Package,
+  Code2,
+  Blocks,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { NotificationLayer } from '../gamification/NotificationLayer';
@@ -66,6 +68,9 @@ const WalletPage         = lazy(() => import('../../pages/WalletPage').then(m =>
 const OrgSettingsPage    = lazy(() => import('../../pages/OrgSettingsPage').then(m => ({ default: m.OrgSettingsPage })));
 const OrgAnalyticsPage   = lazy(() => import('../../pages/OrgAnalyticsPage').then(m => ({ default: m.OrgAnalyticsPage })));
 const SharedAgentsPage   = lazy(() => import('../../pages/SharedAgentsPage').then(m => ({ default: m.SharedAgentsPage })));
+const ApiDocsPage        = lazy(() => import('../../pages/ApiDocsPage').then(m => ({ default: m.ApiDocsPage })));
+const PluginRegistryPage = lazy(() => import('../../pages/PluginRegistryPage').then(m => ({ default: m.PluginRegistryPage })));
+const PluginManagerPage  = lazy(() => import('../../pages/PluginManagerPage').then(m => ({ default: m.PluginManagerPage })));
 
 const NAV_ITEMS = [
   { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard'  },
@@ -96,6 +101,11 @@ const GAMIFICATION_ITEMS = [
   { to: '/skills',    icon: Sparkles,    label: 'Skills'    },
   { to: '/shop',      icon: ShoppingBag, label: 'Shop'      },
   { to: '/inventory', icon: Package,     label: 'Inventory' },
+] as const;
+
+const PLATFORM_ITEMS = [
+  { to: '/plugins',          icon: Blocks, label: 'Plugins'  },
+  { to: '/api-docs',         icon: Code2,  label: 'API Docs' },
 ] as const;
 
 function PageFallback() {
@@ -138,8 +148,12 @@ export function AppShell() {
   const isGamificationActive = GAMIFICATION_ITEMS.some(
     (item) => location.pathname === item.to || location.pathname.startsWith(item.to + '/'),
   );
+  const isPlatformActive = PLATFORM_ITEMS.some(
+    (item) => location.pathname === item.to || location.pathname.startsWith(item.to + '/'),
+  );
   const [integrationsOpen, setIntegrationsOpen] = useState(isIntegrationsActive);
   const [gamificationOpen, setGamificationOpen] = useState(isGamificationActive);
+  const [platformOpen, setPlatformOpen] = useState(isPlatformActive);
 
   const handleLogout = () => {
     localStorage.removeItem('oav_token');
@@ -286,6 +300,54 @@ export function AppShell() {
             )}
           </div>
 
+          {/* Platform group */}
+          <div className="mt-1">
+            <button
+              onClick={() => setPlatformOpen((v) => !v)}
+              className={clsx(
+                'w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-sm transition-colors',
+                'min-h-[44px] focus-visible:ring-2 focus-visible:ring-oav-accent focus-visible:outline-none',
+                isPlatformActive
+                  ? 'text-oav-accent bg-oav-accent/10'
+                  : 'text-oav-muted hover:text-oav-text hover:bg-oav-surface-hover',
+              )}
+              aria-label="Platform"
+              aria-expanded={platformOpen}
+            >
+              <Code2 className="w-5 h-5 shrink-0" aria-hidden="true" />
+              {isExpanded && (
+                <>
+                  <span className="font-medium truncate flex-1 text-left">Platform</span>
+                  <ChevronDown
+                    className={clsx(
+                      'w-4 h-4 shrink-0 transition-transform duration-200',
+                      platformOpen && 'rotate-180',
+                    )}
+                    aria-hidden="true"
+                  />
+                </>
+              )}
+            </button>
+
+            {/* Sub-items expanded */}
+            {isExpanded && platformOpen && (
+              <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-oav-border/50 pl-2">
+                {PLATFORM_ITEMS.map(({ to, icon, label }) => (
+                  <NavLink key={to} to={to} icon={icon} label={label} isExpanded={isExpanded} />
+                ))}
+              </div>
+            )}
+
+            {/* Collapsed: show individual icons */}
+            {!isExpanded && (
+              <div className="flex flex-col gap-0.5 mt-0.5">
+                {PLATFORM_ITEMS.map(({ to, icon, label }) => (
+                  <NavLink key={to} to={to} icon={icon} label={label} isExpanded={false} />
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Other nav */}
           {OTHER_NAV_ITEMS.map(({ to, icon, label }) => (
             <NavLink
@@ -370,6 +432,9 @@ export function AppShell() {
             <Route path="/org/settings"    element={<OrgSettingsPage />} />
             <Route path="/org/analytics"   element={<OrgAnalyticsPage />} />
             <Route path="/shared-agents"   element={<SharedAgentsPage />} />
+            <Route path="/api-docs"        element={<ApiDocsPage />} />
+            <Route path="/plugins/registry" element={<PluginRegistryPage />} />
+            <Route path="/plugins"         element={<PluginManagerPage />} />
             <Route path="*"                element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
