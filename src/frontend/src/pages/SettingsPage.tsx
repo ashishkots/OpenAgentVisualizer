@@ -8,13 +8,17 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { IntegrationConfigCard } from '../components/settings/IntegrationConfigCard';
 import { MemberList } from '../components/collaboration/MemberList';
 import { SSOConfigForm } from '../components/platform/SSOConfigForm';
+import { WebhookList } from '../components/platform/WebhookList';
+import { WebhookModal } from '../components/platform/WebhookModal';
 import { useIntegrations } from '../hooks/useIntegrations';
+import { useWebhooks } from '../hooks/useWebhooks';
 import { clsx } from 'clsx';
 import type { IntegrationType } from '../types/integration';
+import type { Webhook } from '../types/webhook';
 
 const BREADCRUMB = [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings' }];
 
-type SettingsTab = 'workspace' | 'keys' | 'integrations' | 'members' | 'sso';
+type SettingsTab = 'workspace' | 'keys' | 'integrations' | 'members' | 'sso' | 'webhooks';
 
 const TABS: { value: SettingsTab; label: string }[] = [
   { value: 'workspace', label: 'Workspace' },
@@ -22,6 +26,7 @@ const TABS: { value: SettingsTab; label: string }[] = [
   { value: 'integrations', label: 'Integrations' },
   { value: 'members', label: 'Members' },
   { value: 'sso', label: 'SSO' },
+  { value: 'webhooks', label: 'Webhooks' },
 ];
 
 const INTEGRATION_PRODUCTS: IntegrationType[] = ['opentrace', 'openmesh', 'openmind', 'openshield'];
@@ -54,6 +59,11 @@ export function SettingsPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
   const [xpDecayEnabled, setXpDecayEnabled] = useState(false);
+
+  // Webhooks state
+  const [showWebhookModal, setShowWebhookModal] = useState(false);
+  const [editingWebhook, setEditingWebhook] = useState<Webhook | null>(null);
+  const { data: webhooks = [], isLoading: webhooksLoading } = useWebhooks();
 
   // Load integrations when on integrations tab
   useIntegrations();
@@ -333,6 +343,42 @@ export function SettingsPage() {
             <SSOConfigForm />
           </div>
         </section>
+      )}
+
+      {/* Webhooks tab */}
+      {activeTab === 'webhooks' && (
+        <section aria-labelledby="webhooks-heading">
+          <div className="flex items-center justify-between mb-4">
+            <h2 id="webhooks-heading" className="text-lg font-semibold text-oav-text">
+              Webhooks
+            </h2>
+            <button
+              onClick={() => { setEditingWebhook(null); setShowWebhookModal(true); }}
+              className="flex items-center gap-2 text-sm text-white bg-oav-accent rounded-lg px-3 py-2 hover:bg-oav-accent/80 transition-colors min-h-[44px]"
+              aria-label="Create new webhook"
+            >
+              <Plus className="w-4 h-4" aria-hidden="true" />
+              New Webhook
+            </button>
+          </div>
+
+          {webhooksLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <WebhookList
+              webhooks={webhooks}
+              onEdit={(wh) => { setEditingWebhook(wh); setShowWebhookModal(true); }}
+            />
+          )}
+        </section>
+      )}
+
+      {/* Webhook Modal */}
+      {showWebhookModal && (
+        <WebhookModal
+          webhook={editingWebhook}
+          onClose={() => { setShowWebhookModal(false); setEditingWebhook(null); }}
+        />
       )}
 
       {/* Create Key Modal */}
