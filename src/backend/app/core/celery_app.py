@@ -99,6 +99,36 @@ celery_app.conf.update(
             "task": "app.tasks.activity.prune_activity",
             "schedule": 86400.0,
         },
+        # Score all currently active tournaments every hour
+        "score-active-tournaments": {
+            "task": "app.tasks.tournaments.score_active_tournaments",
+            "schedule": 3600.0,  # 1 hour
+        },
+        # Finalize tournaments whose end_at has passed (runs hourly)
+        "finalize-completed-tournaments": {
+            "task": "app.tasks.tournaments.finalize_completed_tournaments",
+            "schedule": 3600.0,  # 1 hour
+        },
+        # Create weekly Speed and Efficiency tournaments (runs weekly)
+        "create-weekly-tournaments": {
+            "task": "app.tasks.tournaments.create_weekly_tournaments",
+            "schedule": 604800.0,  # 7 days
+        },
+        # Check for ended seasons and rotate (runs daily)
+        "rotate-season": {
+            "task": "app.tasks.seasons.rotate_season",
+            "schedule": 86400.0,  # 24 hours
+        },
+        # Update challenge progress and check completion/expiry (runs every 5 minutes)
+        "update-challenge-progress": {
+            "task": "app.tasks.challenges.update_challenge_progress",
+            "schedule": 300.0,  # 5 minutes
+        },
+        # Create weekly workspace challenges (runs weekly)
+        "create-weekly-challenges": {
+            "task": "app.tasks.challenges.create_weekly_challenges",
+            "schedule": 604800.0,  # 7 days
+        },
     },
 )
 
