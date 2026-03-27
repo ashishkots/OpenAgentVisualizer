@@ -8,6 +8,8 @@ from app.core.database import engine, Base, AsyncSessionLocal
 from app.core.redis_client import get_redis, close_redis
 from app.core.security import hash_password
 from app.core.config import settings
+from app.core.logging import setup_logging
+from app.middleware.correlation import CorrelationIDMiddleware
 
 # Import all models so Base.metadata is populated before create_all
 from app.models.user import User, Workspace, WorkspaceMember  # noqa: F401
@@ -37,6 +39,7 @@ from app.routers import ue5_websocket
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    setup_logging()
     # Initialize DB tables (Alembic handles production; create_all for dev/test)
     async with engine.begin() as conn:
         await conn.run_sync(lambda c: Base.metadata.create_all(c, checkfirst=True))
@@ -65,6 +68,8 @@ async def seed_default_user() -> None:
 
 
 app = FastAPI(title="OpenAgentVisualizer API", version="3.0.0", lifespan=lifespan)
+
+app.add_middleware(CorrelationIDMiddleware)
 
 # ---- Prometheus metrics instrumentation ----
 # The /metrics endpoint is exposed without JWT auth (standard Prometheus scrape pattern).
