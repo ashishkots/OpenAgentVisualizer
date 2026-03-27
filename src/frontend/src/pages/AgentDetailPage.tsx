@@ -8,6 +8,8 @@ import {
   TrendingUp,
   Cpu,
   GitBranch,
+  ScrollText,
+  Sparkles,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { apiClient } from '../services/api';
@@ -24,9 +26,14 @@ import { clsx } from 'clsx';
 import type { Agent } from '../types/agent';
 import type { Achievement } from '../types/gamification';
 import { AgentTracesTab } from '../components/agents/AgentTracesTab';
+import { QuestCard } from '../components/gamification/QuestCard';
+import { SkillNode } from '../components/gamification/SkillNode';
+import { useAgentQuests, useClaimQuest } from '../hooks/useQuests';
+import { useSkillTrees, useAgentSkills } from '../hooks/useSkills';
 import { formatDistanceToNow } from 'date-fns';
+import type { SkillNode as SkillNodeType, SkillNodeState } from '../types/skill';
 
-type Tab = 'events' | 'state' | 'achievements' | 'sessions' | 'xp' | 'traces';
+type Tab = 'events' | 'state' | 'achievements' | 'sessions' | 'xp' | 'traces' | 'quests' | 'skills';
 
 const TABS: { id: Tab; label: string; icon: React.FC<{ className?: string }> }[] = [
   { id: 'events',       label: 'Events',        icon: Activity   },
@@ -35,6 +42,8 @@ const TABS: { id: Tab; label: string; icon: React.FC<{ className?: string }> }[]
   { id: 'sessions',     label: 'Sessions',       icon: Play       },
   { id: 'xp',           label: 'XP History',     icon: TrendingUp },
   { id: 'traces',       label: 'Traces',         icon: GitBranch  },
+  { id: 'quests',       label: 'Quests',         icon: ScrollText },
+  { id: 'skills',       label: 'Skills',         icon: Sparkles   },
 ];
 
 interface AgentEvent {
@@ -100,6 +109,25 @@ export function AgentDetailPage() {
     },
     enabled: !!agentId && activeTab === 'achievements',
   });
+
+  const { data: agentQuestProgress = [] } = useAgentQuests(
+    activeTab === 'quests' ? agentId : undefined,
+  );
+  const { mutate: claimQuest, isPending: isClaimingQuest, variables: claimingQuestId } = useClaimQuest();
+
+  const { data: skillTrees = [] } = useSkillTrees();
+  const { data: agentSkills = [] } = useAgentSkills(
+    activeTab === 'skills' ? agentId : undefined,
+  );
+  const unlockedNodeIds = new Set(agentSkills.map((s) => s.node_id));
+
+  function getSkillNodeState(node: SkillNodeType): SkillNodeState {
+    if (unlockedNodeIds.has(node.id)) return 'unlocked';
+    if (!agent) return 'locked';
+    if (agent.level < node.level_required) return 'locked';
+    if (node.parent_id && !unlockedNodeIds.has(node.parent_id)) return 'locked';
+    return 'available';
+  }
 
   const { data: xpHistory = [] } = useQuery({
     queryKey: ['agent-xp-history', agentId],
@@ -305,6 +333,76 @@ export function AgentDetailPage() {
         {/* Traces Tab */}
         {activeTab === 'traces' && agentId && (
           <AgentTracesTab agentId={agentId} />
+        )}
+
+        {/* Quests Tab */}
+        {activeTab === 'quests' && (
+          <div>
+            {agentQuestProgress.length === 0 ? (
+              <EmptyState message="No quest progress for this agent yet." />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {agentQuestProgress.map((progress) => (
+                  <QuestCard
+                    key={progress.id}
+                    quest={progress.quest}
+                    progress={progress}
+                    onClaim={(id) => claimQuest(id)}
+                    isClaiming={isClaimingQuest && claimingQuestId === progress.quest_id}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Skills Tab */}
+        {activeTab === 'skills' && (
+          <div>
+            {skillTrees.length === 0 ? (
+              <EmptyState message="No skill trees available." />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {skillTrees.map((tree) => {
+                  const byTier = tree.nodes.reduce<Record<number, SkillNodeType[]>>((acc, node) => {
+                    if (!acc[node.tier]) acc[node.tier] = [];
+                    acc[node.tier].push(node);
+                    return acc;
+                  }, {});
+                  const tiers = Object.keys(byTier).map(Number).sort((a, b) => a - b);
+                  return (
+                    <div
+                      key={tree.id}
+                      className="bg-oav-surface border border-oav-border rounded-xl p-4"
+                    >
+                      <p className="text-sm font-bold text-oav-text text-center mb-3">{tree.name}</p>
+                      <div className="flex flex-col items-center gap-0">
+                        {tiers.map((tier, idx) => (
+                          <div key={tier} className="flex flex-col items-center w-full">
+                            <div className="flex justify-center gap-4 flex-wrap">
+                              {byTier[tier].map((node) => (
+                                <SkillNode
+                                  key={node.id}
+                                  node={node}
+                                  state={getSkillNodeState(node)}
+                                />
+                              ))}
+                            </div>
+                            {idx < tiers.length - 1 && (
+                              <div className="w-px h-5 bg-oav-border my-1" aria-hidden="true" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-xs text-oav-muted mt-4 text-center">
+              Visit the <Link to="/skills" className="text-oav-accent hover:underline">Skills page</Link> to unlock skills for this agent.
+            </p>
+          </div>
         )}
 
         {/* XP History Tab */}
