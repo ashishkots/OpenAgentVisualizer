@@ -70,6 +70,7 @@ from app.routers import sso as sso_router
 from app.routers import organizations as organizations_router
 from app.routers import shared_agents as shared_agents_router
 from app.routers import webhooks as webhooks_router
+from app.routers import plugins as plugins_router
 from app.services.websocket_manager import manager as ws_manager
 from app.core.logging import get_logger
 
@@ -319,3 +320,4 @@ app.include_router(sso_router.router)
 app.include_router(organizations_router.router)
 app.include_router(shared_agents_router.router)
 app.include_router(webhooks_router.router)
+app.include_router(plugins_router.router)
