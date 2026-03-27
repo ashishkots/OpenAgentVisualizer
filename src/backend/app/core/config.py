@@ -11,9 +11,15 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://oav:oav@localhost:5432/oav"
+    DB_POOL_SIZE: int = 10
+    DB_MAX_OVERFLOW: int = 20
+    DB_POOL_RECYCLE: int = 300
+    DB_POOL_PRE_PING: bool = True
+    DB_STATEMENT_TIMEOUT: int = 30000  # milliseconds
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_MAX_CONNECTIONS: int = 50
 
     # OTLP
     OTLP_GRPC_PORT: int = 4317
