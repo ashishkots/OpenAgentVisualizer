@@ -17,6 +17,10 @@ from app.models.tournament import Tournament, TournamentEntry
 from app.models.season import Season, SeasonalXP
 from app.models.team import Team, TeamMember
 from app.models.challenge import Challenge, ChallengeProgress
+from app.models.sso import SSOConfig, SSOSession
+from app.models.organization import Organization, OrgMember, SharedAgent
+from app.models.webhook import Webhook, WebhookDelivery
+from app.models.plugin import Plugin, PluginRegistry
 
 __all__ = [
     "User", "Workspace", "WorkspaceMember", "APIKey",
@@ -38,4 +42,8 @@ __all__ = [
     "Season", "SeasonalXP",
     "Team", "TeamMember",
     "Challenge", "ChallengeProgress",
+    "SSOConfig", "SSOSession",
+    "Organization", "OrgMember", "SharedAgent",
+    "Webhook", "WebhookDelivery",
+    "Plugin", "PluginRegistry",
 ]

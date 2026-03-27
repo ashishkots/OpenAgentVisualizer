@@ -33,6 +33,10 @@ from app.models.tournament import Tournament, TournamentEntry  # noqa: F401
 from app.models.season import Season, SeasonalXP  # noqa: F401
 from app.models.team import Team, TeamMember  # noqa: F401
 from app.models.challenge import Challenge, ChallengeProgress  # noqa: F401
+from app.models.webhook import Webhook, WebhookDelivery  # noqa: F401
+from app.models.plugin import Plugin, PluginRegistry  # noqa: F401
+from app.models.sso import SSOConfig, SSOSession  # noqa: F401
+from app.models.organization import Organization, OrgMember, SharedAgent  # noqa: F401
 
 from app.routers import (
     auth,
@@ -79,6 +83,8 @@ async def lifespan(app: FastAPI):
     await seed_default_user()
     # Seed gamification data (quests, skills, shop items) if tables are empty
     await seed_gamification_data()
+    # Seed plugin registry entries if table is empty
+    await seed_plugin_registry()
     yield
     # Shutdown
     _logger.info("shutdown.initiated", event="graceful_shutdown_start")
@@ -158,6 +164,20 @@ async def seed_gamification_data() -> None:
                 db.add(ShopItem(**item))
             await db.commit()
             _logger.info("seed.shop_items", count=len(SHOP_ITEM_SEEDS))
+
+
+async def seed_plugin_registry() -> None:
+    """Seed plugin registry with 5 example entries if the table is empty."""
+    from app.data.seed_plugins import PLUGIN_REGISTRY_SEEDS
+    from app.models.plugin import PluginRegistry
+
+    async with AsyncSessionLocal() as db:
+        count = await db.scalar(select(func.count(PluginRegistry.id)))
+        if count == 0:
+            for entry in PLUGIN_REGISTRY_SEEDS:
+                db.add(PluginRegistry(**entry))
+            await db.commit()
+            _logger.info("seed.plugin_registry", count=len(PLUGIN_REGISTRY_SEEDS))
 
 
 app = FastAPI(title="OpenAgentVisualizer API", version="3.0.0", lifespan=lifespan)

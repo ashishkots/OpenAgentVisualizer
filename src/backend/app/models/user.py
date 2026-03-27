@@ -2,7 +2,7 @@ from sqlalchemy import String, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import uuid
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 from app.core.database import Base
 from app.core.utils import utcnow
 
@@ -12,6 +12,11 @@ class Workspace(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    # org_id is nullable — workspaces without an org continue to work
+    org_id: Mapped[Optional[str]] = mapped_column(
+        ForeignKey("organizations.id", use_alter=True, name="fk_workspaces_org_id"),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
     members: Mapped[List["WorkspaceMember"]] = relationship(back_populates="workspace")
 
@@ -21,6 +26,7 @@ class User(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    display_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
     memberships: Mapped[List["WorkspaceMember"]] = relationship(back_populates="user")
