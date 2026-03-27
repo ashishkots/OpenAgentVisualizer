@@ -1,7 +1,13 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 from fastapi import WebSocket
 import redis.asyncio as aioredis
 import orjson
+
+# Maximum number of pending messages per WebSocket connection.
+# When the queue is at capacity the oldest pending message is evicted
+# before the new one is enqueued, preventing unbounded memory growth on
+# slow consumers.
+MAX_SEND_QUEUE = 100
 
 
 class RoomWebSocketManager:
@@ -11,6 +17,12 @@ class RoomWebSocketManager:
       - workspace:{workspace_id}  — all events for a workspace
       - agent:{agent_id}          — single agent events
       - session:{session_id}      — single session events
+
+    Backpressure:
+      Each connection owns a bounded deque of size MAX_SEND_QUEUE.  When a
+      publish arrives and the queue is already full, the oldest pending
+      message is dropped and the ``oav_ws_messages_dropped_total`` counter
+      is incremented before the new message is enqueued.
     """
 
     def __init__(self) -> None:
@@ -20,10 +32,13 @@ class RoomWebSocketManager:
         self._ws_rooms: dict[WebSocket, set[str]] = defaultdict(set)
         # room -> monotonically increasing sequence counter
         self._sequences: dict[str, int] = defaultdict(int)
+        # ws -> bounded send queue (maxlen enforces backpressure limit)
+        self._send_queues: dict[WebSocket, deque] = {}
 
     async def connect(self, ws: WebSocket) -> None:
-        """Accept the WebSocket handshake."""
+        """Accept the WebSocket handshake and initialise its send queue."""
         await ws.accept()
+        self._send_queues[ws] = deque(maxlen=MAX_SEND_QUEUE)
         try:
             from app.core.metrics import oav_websocket_connections_active
             oav_websocket_connections_active.inc()
@@ -41,10 +56,12 @@ class RoomWebSocketManager:
         self._ws_rooms[ws].discard(room)
 
     def disconnect(self, ws: WebSocket) -> None:
-        """Remove a connection from all rooms and clean up."""
+        """Remove a connection from all rooms and clean up its send queue."""
         was_connected = ws in self._ws_rooms
         for room in list(self._ws_rooms.pop(ws, set())):
             self._rooms[room].discard(ws)
+        # Release the send queue for this connection
+        self._send_queues.pop(ws, None)
         if was_connected:
             try:
                 from app.core.metrics import oav_websocket_connections_active
@@ -60,7 +77,14 @@ class RoomWebSocketManager:
         """Send a message to all connections subscribed to a room.
 
         Attaches the room name and an incrementing sequence number to the
-        message before sending, then prunes any dead connections.
+        message before sending.
+
+        Backpressure:
+          Before enqueuing the serialised payload the implementation checks
+          whether the connection's send queue is at capacity.  If so, the
+          oldest pending entry is removed from the left and
+          ``oav_ws_messages_dropped_total`` is incremented.  Dead
+          connections (send raises) are pruned after the loop.
         """
         self._sequences[room] += 1
         message["room"] = room
@@ -68,6 +92,17 @@ class RoomWebSocketManager:
         data = orjson.dumps(message).decode()
         dead: set[WebSocket] = set()
         for ws in list(self._rooms.get(room, set())):
+            queue = self._send_queues.get(ws)
+            if queue is not None:
+                if len(queue) >= MAX_SEND_QUEUE:
+                    # Evict the oldest pending message and track the drop
+                    queue.popleft()
+                    try:
+                        from app.core.metrics import oav_ws_messages_dropped_total
+                        oav_ws_messages_dropped_total.inc()
+                    except Exception:
+                        pass
+                queue.append(data)
             try:
                 await ws.send_text(data)
             except Exception:
@@ -86,6 +121,7 @@ class RoomWebSocketManager:
         self._rooms.clear()
         self._ws_rooms.clear()
         self._sequences.clear()
+        self._send_queues.clear()
 
     async def start_redis_listener(self, redis_conn: aioredis.Redis) -> None:
         """Listen to Redis Pub/Sub for room channels and fan out to subscribers.

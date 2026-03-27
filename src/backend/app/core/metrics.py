@@ -51,3 +51,8 @@ oav_integration_requests_total = Counter(
     "Total requests made to external integration services",
     labelnames=["integration", "status"],
 )
+
+oav_ws_messages_dropped_total = Counter(
+    "oav_ws_messages_dropped_total",
+    "WebSocket messages dropped due to backpressure",
+)
