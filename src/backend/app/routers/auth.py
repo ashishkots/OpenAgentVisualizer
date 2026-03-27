@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.requests import Request
+from starlette.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, asc
 from sqlalchemy.exc import IntegrityError
+from jose import jwt, JWTError
 from app.core.database import get_db
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.rate_limiter import limiter, AUTH_RATE
+from app.core.config import settings
 from app.models.user import User, Workspace, WorkspaceMember
 from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
 import uuid
@@ -39,7 +42,7 @@ async def register(request: Request, req: RegisterRequest, db: AsyncSession = De
     return TokenResponse(access_token=token, workspace_id=ws.id)
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 @limiter.limit(AUTH_RATE)
 async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(get_db)):
     user = await db.scalar(select(User).where(User.email == req.email))
@@ -52,5 +55,55 @@ async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(
     )
     if not member:
         raise HTTPException(status_code=400, detail="No workspace found")
-    token = create_access_token({"sub": user.id, "workspace_id": member.workspace_id})
-    return TokenResponse(access_token=token, workspace_id=member.workspace_id)
+
+    access_token = create_access_token({"sub": user.id, "workspace_id": member.workspace_id})
+
+    refresh_expires_minutes = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60
+    refresh_token = create_access_token(
+        data={
+            "sub": str(user.id),
+            "workspace_id": str(member.workspace_id),
+            "type": "refresh",
+        },
+        expires_delta_minutes=refresh_expires_minutes,
+    )
+
+    response = JSONResponse(content={
+        "access_token": access_token,
+        "token_type": "bearer",
+        "workspace_id": str(member.workspace_id),
+    })
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+    )
+    return response
+
+
+@router.post("/refresh")
+async def refresh_token(request: Request):
+    """Issue a new access token using the refresh token cookie."""
+    token = request.cookies.get("refresh_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="No refresh token")
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid token type")
+        user_id = payload.get("sub")
+        workspace_id = payload.get("workspace_id")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    access_token = create_access_token(
+        data={"sub": user_id, "workspace_id": workspace_id},
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
