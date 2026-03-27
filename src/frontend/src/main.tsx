@@ -33,3 +33,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+// Register service worker for PWA support (production + dev with HTTPS)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Registration failure is non-fatal; app works without SW
+    });
+  });
+}
