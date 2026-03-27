@@ -56,3 +56,40 @@ oav_ws_messages_dropped_total = Counter(
     "oav_ws_messages_dropped_total",
     "WebSocket messages dropped due to backpressure",
 )
+
+# ---- Pool and cache metrics ----
+
+oav_db_pool_size = Gauge(
+    "oav_db_pool_size",
+    "Current number of connections held in the SQLAlchemy async DB pool",
+)
+
+oav_db_pool_overflow = Gauge(
+    "oav_db_pool_overflow",
+    "Current number of overflow connections open beyond DB_POOL_SIZE",
+)
+
+oav_redis_pool_active = Gauge(
+    "oav_redis_pool_active",
+    "Number of Redis connections currently checked out from the pool",
+)
+
+oav_cache_hits_total = Counter(
+    "oav_cache_hits_total",
+    "Total Redis cache hits across all cached endpoints",
+)
+
+oav_cache_misses_total = Counter(
+    "oav_cache_misses_total",
+    "Total Redis cache misses across all cached endpoints",
+)
+
+oav_rate_limit_hits_total = Counter(
+    "oav_rate_limit_hits_total",
+    "Total requests rejected by the rate limiter",
+)
+
+oav_celery_dlq_depth = Gauge(
+    "oav_celery_dlq_depth",
+    "Number of tasks currently sitting in the Celery dead letter queue",
+)
