@@ -1,5 +1,23 @@
 from celery import Celery
+from kombu import Queue
 from app.core.config import settings
+
+# ---------------------------------------------------------------------------
+# Priority queues
+# ---------------------------------------------------------------------------
+# Four queues are defined with explicit priorities so the worker can
+# preference time-sensitive tasks (achievements) over bulk work
+# (integration syncs) without starvation.
+#
+#   critical    — achievement unlock notifications (user-facing, low latency)
+#   default     — graph computation and leaderboard refreshes
+#   bulk        — integration syncs and XP decay (background, can lag)
+#   dead_letter — tasks that exhausted all retries (manual inspection/retry)
+
+QUEUE_CRITICAL = "critical"
+QUEUE_DEFAULT = "default"
+QUEUE_BULK = "bulk"
+QUEUE_DEAD_LETTER = "dead_letter"
 
 celery_app = Celery(
     "oav",
@@ -20,6 +38,31 @@ celery_app.conf.update(
     timezone="UTC",
     enable_utc=True,
     task_track_started=True,
+    # ---- Reliability settings ----
+    # Acknowledge tasks only after the handler returns, so a worker crash
+    # before completion causes the broker to redeliver the task.
+    task_acks_late=True,
+    # Reject (rather than ack) a task when the worker process is killed
+    # unexpectedly, ensuring it is requeued by the broker.
+    task_reject_on_worker_lost=True,
+    # ---- Priority queues ----
+    task_queues=(
+        Queue(QUEUE_CRITICAL),
+        Queue(QUEUE_DEFAULT),
+        Queue(QUEUE_BULK),
+        Queue(QUEUE_DEAD_LETTER),
+    ),
+    task_default_queue=QUEUE_DEFAULT,
+    # Route specific task modules to appropriate queues
+    task_routes={
+        "app.tasks.achievements.*": {"queue": QUEUE_CRITICAL},
+        "app.tasks.graph.*": {"queue": QUEUE_DEFAULT},
+        "app.tasks.integrations.*": {"queue": QUEUE_BULK},
+        # Beat tasks routed by explicit task name
+        "app.tasks.refresh_leaderboard": {"queue": QUEUE_DEFAULT},
+        "app.tasks.sync_integrations_all": {"queue": QUEUE_BULK},
+        "app.tasks.apply_xp_decay": {"queue": QUEUE_BULK},
+    },
     beat_schedule={
         # Refresh the agent leaderboard materialized view every 5 minutes
         "refresh-leaderboard": {
