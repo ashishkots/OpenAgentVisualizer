@@ -200,6 +200,57 @@
 
 ---
 
+## Sprint 5: User Experience (Complete)
+
+### Onboarding
+| ID | Task | Status |
+|----|------|--------|
+| OAV-501 | First-run wizard (3 steps: Welcome, Connect, Verify) | Done |
+| OAV-502 | Guided tooltip tour (6 stops, localStorage persistence) | Done |
+| OAV-503 | Empty states on all list pages with CTAs | Done |
+
+### Notifications
+| ID | Task | Status |
+|----|------|--------|
+| OAV-511 | Notification model + migration + endpoints | Done |
+| OAV-512 | Notification service + Celery triggers | Done |
+| OAV-513 | NotificationBell + dropdown + full page | Done |
+| OAV-514 | Real-time WebSocket push for notifications | Done |
+
+### Data Export
+| ID | Task | Status |
+|----|------|--------|
+| OAV-521 | Streaming CSV/JSON export endpoints (agents, events) | Done |
+| OAV-522 | Export UI (format selector, date range, download) | Done |
+
+### Collaboration
+| ID | Task | Status |
+|----|------|--------|
+| OAV-531 | Workspace invites (create, list, revoke, accept) | Done |
+| OAV-532 | Activity feed (logging, endpoint, 90-day pruning) | Done |
+| OAV-533 | Members tab in Settings (list, invite modal, role badges) | Done |
+| OAV-534 | Activity feed sidebar on Dashboard | Done |
+| OAV-535 | Invite accept page (/invite/:token) | Done |
+
+### Mobile + PWA
+| ID | Task | Status |
+|----|------|--------|
+| OAV-541 | Bottom navigation bar (5 tabs, mobile only) | Done |
+| OAV-542 | Bottom sheet component (drag-to-dismiss) | Done |
+| OAV-543 | Pinch-to-zoom + long-press on canvas | Done |
+| OAV-544 | PWA manifest + service worker + offline banner | Done |
+
+### Key Deliverables
+- **Onboarding**: 3-step wizard with real-time event verification, 6-stop guided tour, empty states on all list pages
+- **Notifications**: Full notification system — model, service, 4 endpoints, bell+dropdown+page, WebSocket push, Celery triggers
+- **Export**: Streaming CSV/JSON for agents and events (30-day max), ExportButton+Dialog components
+- **Collaboration**: Workspace invites with token-based accept, activity feed with 90-day pruning, Members tab, viewer role support
+- **Mobile**: Bottom nav (5 tabs), bottom sheets (drag-to-dismiss), pinch-to-zoom, long-press, PWA manifest, service worker, offline banner
+- **New DB tables**: notifications, workspace_invites, activity_feed (migration 006)
+- **Tests**: 25+ mobile/PWA tests, notification/export/invite/activity backend tests
+
+---
+
 ## Velocity Notes
 
 - Sprint 1 delivered 19 features: full backend platform
@@ -229,5 +280,12 @@
   - Security audit: clean OWASP scan (no vulnerabilities found)
   - Targets: 500 agents at 60fps (LOD), p95 < 200ms, 99.5% WebSocket delivery
   - 15 Prometheus metrics, 5 alert rules, 9-panel Grafana dashboard
+- Sprint 5 delivered 18 UX features: onboarding, notifications, export, collaboration, mobile, PWA
+  - 3 parallel agent groups (backend, frontend, mobile+PWA)
+  - 10 commits across 4 groups
+  - 3 new DB tables + migration 006
+  - 5 new backend routers, 2 new Celery tasks
+  - 30+ new frontend components across 5 subsystems
+  - PWA with service worker, offline support, bottom navigation
 - Key visualization libraries fully integrated: PixiJS, XState, ReactFlow, GSAP (Rive deferred as progressive enhancement)
-- All 4 sprints complete: 74 features delivered
+- All 5 sprints complete: 92 features delivered
