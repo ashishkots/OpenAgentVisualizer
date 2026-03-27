@@ -37,6 +37,10 @@ from app.routers import websocket as ws_router
 from app.routers.spans import router as spans_router
 from app.routers import integrations as integrations_router
 from app.routers import ue5_websocket
+from app.services.websocket_manager import manager as ws_manager
+from app.core.logging import get_logger
+
+_logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -50,8 +54,12 @@ async def lifespan(app: FastAPI):
     # Seed default user and workspace
     await seed_default_user()
     yield
-    # Cleanup
+    # Shutdown
+    _logger.info("shutdown.initiated", event="graceful_shutdown_start")
+    await ws_manager.close_all()
+    _logger.info("shutdown.websockets_drained", event="websocket_connections_closed")
     await close_redis()
+    _logger.info("shutdown.complete", event="graceful_shutdown_complete")
 
 
 async def seed_default_user() -> None:

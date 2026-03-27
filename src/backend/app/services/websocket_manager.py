@@ -75,6 +75,18 @@ class RoomWebSocketManager:
         for ws in dead:
             self.disconnect(ws)
 
+    async def close_all(self) -> None:
+        """Gracefully close all WebSocket connections."""
+        for ws_set in self._rooms.values():
+            for ws in list(ws_set):
+                try:
+                    await ws.close(code=1001, reason="Server shutting down")
+                except Exception:
+                    pass
+        self._rooms.clear()
+        self._ws_rooms.clear()
+        self._sequences.clear()
+
     async def start_redis_listener(self, redis_conn: aioredis.Redis) -> None:
         """Listen to Redis Pub/Sub for room channels and fan out to subscribers.
 
