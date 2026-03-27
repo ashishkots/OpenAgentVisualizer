@@ -4,28 +4,18 @@
 
 Watch your AI agents work in real-time. Assign tasks, track performance, manage costs, and gamify productivity — all in an animated virtual workspace.
 
-![Status](https://img.shields.io/badge/status-pre--development-blue)
+![Status](https://img.shields.io/badge/status-production--ready-brightgreen)
+![Sprints](https://img.shields.io/badge/sprints-7%2F7%20complete-blue)
+![Features](https://img.shields.io/badge/features-125-orange)
 ![License](https://img.shields.io/badge/license-FSL--MIT-green)
 
 ---
 
 ## What is OpenAgentVisualizer?
 
-OpenAgentVisualizer is a real-time, animated virtual workspace that visualizes AI agent teams as characters operating in a 2D spatial environment. Each agent appears as a distinct entity with its own avatar, status indicators, XP level, and activity animations.
+OpenAgentVisualizer is a real-time, animated virtual workspace that visualizes AI agent teams as characters operating in 2D and 3D spatial environments. Each agent appears as a distinct entity with its own avatar, status indicators, XP level, skill tree, and activity animations.
 
-Unlike existing observability tools that show agents as boxes in a flowchart or lines in a log file, OpenAgentVisualizer treats agents as **persistent characters with identity, history, and personality**.
-
-### The Problem
-
-- **57%** of companies have AI agents in production, **49.3%** run 10+ agents
-- Enterprise monthly AI spend averages **$85,521** (up 36% YoY)
-- **57%** still use spreadsheets to track AI costs
-- Every existing AI observability tool is a text-based trace viewer built for backend engineers reading JSON
-- There is no product that makes watching agents work satisfying or comprehensible to a non-engineer
-
-### The Solution
-
-Connect any agent framework in **3 lines of code** and instantly see every agent as an animated character with real-time status, cost tracking, performance XP, and loop detection.
+Connect any agent framework in **3 lines of code**:
 
 ```python
 from openagentvisualizer import OAVTracer
@@ -34,45 +24,69 @@ tracer = OAVTracer(api_key="oav_...")
 
 @tracer.agent(name="ResearchBot", role="researcher")
 def my_agent(task):
-    # Your agent code — zero changes needed
-    return result
+    return result  # Zero changes needed
 ```
 
 ---
 
-## Key Features
+## Features (125 delivered across 7 sprints)
 
-### Virtual World View
-- Isometric 2D office environment with animated agent avatars
-- Real-time status updates (idle, working, thinking, communicating, error)
-- Agent-to-agent communication visualized as particle flows
-- Semantic zoom: zoom out for overview, zoom in for details
-- Weather effects tied to system health (sunny = healthy, storm = critical)
+### Visualization Engine
+- **2D Virtual World** — PixiJS canvas with sprite pooling, 60fps at 500 agents (LOD system)
+- **3D Viewer** — UE5 Pixel Streaming integration with fallback to 2D
+- **Topology Graph** — Interactive ReactFlow network with custom nodes/edges
+- **State Machines** — XState v5 FSMs visualizing agent states (idle/active/waiting/error/complete)
+- **Animations** — GSAP-powered transitions, XP gain effects, level-up celebrations
 
-### Gamification Engine
-- **XP & Leveling** — Agents earn XP for task completion, quality, efficiency
-- **38+ Achievements** — Badges for milestones across productivity, quality, reliability
-- **Leaderboards** — Daily/weekly/monthly rankings with anti-gaming measures
-- **Quests** — Daily challenges and epic multi-day missions
-- **Virtual Economy** — Earn coins, customize avatars and office spaces
-- **Professional Mode** — Toggle off gamification for enterprise dashboards
+### Gamification
+- **10-Level XP System** — Agents earn XP from tasks, events, streaks
+- **10 Achievements** — Milestone badges with XP bonuses
+- **Quest Chains** — 15 quests (5 daily, 5 weekly, 5 epic) with step progression
+- **Skill Trees** — 4 trees (Speed/Accuracy/Efficiency/Resilience) with 20 unlockable nodes
+- **Virtual Economy** — Token currency, 20-item marketplace, cosmetics/boosts/titles
+- **Tournaments** — Weekly competitions with entry fees and prize pools
+- **Seasonal Leaderboards** — 30-day seasons with auto-rotation and top-10 rewards
+- **Teams** — Squad formation (max 10 agents), team stats, team leaderboard
+- **Cooperative Challenges** — Workspace-wide goals with shared progress
 
-### Observability & Analytics
-- Per-agent token usage, cost tracking, and quality scores
-- Loop detection with automatic alerts (prevents $47K runaway incidents)
-- Session replay — rewind and watch exactly what happened
-- Topology view — see agent communication graphs and handoff chains
-- SLO management with automated alerting
+### Observability
+- **Event Ingestion** — Single + batch via Redis pipeline, OTLP receiver (gRPC + HTTP)
+- **Metrics** — Token usage, cost tracking, latency, hourly/daily aggregates (TimescaleDB)
+- **Alerts** — Alert management with severity levels and lifecycle
+- **Session Replay** — Cursor-based pagination with time range queries
+- **15 Prometheus Metrics** — Request rates, pool sizes, cache ratios, DLQ depth
+- **Grafana Dashboard** — 9 pre-built panels + 5 alert rules
 
-### Multi-Framework Support
-- LangChain / LangGraph
-- CrewAI
-- AutoGen
-- OpenAI Assistants API & Agents SDK
-- Anthropic Claude
-- Ollama / HuggingFace / vLLM
-- Custom HTTP agents (webhook + polling)
-- OpenTelemetry GenAI Semantic Conventions
+### Cross-Product Integrations
+- **OpenTrace** — Trace waterfall diagrams with span explorer
+- **OpenMesh** — Mesh topology visualization with live updates
+- **OpenMind** — Knowledge graph with entity search
+- **OpenShield** — Compliance scores and security grades
+
+### Platform
+- **API Versioning** — /api/v1/ with backward compatibility
+- **Webhook System** — HMAC-SHA256 signed delivery, 8 event types, 3x exponential retry
+- **Plugin System** — Registry, install/manage lifecycle, sandboxed hook execution (5s timeout)
+- **SSO** — SAML 2.0 + OIDC (Google/Okta/Azure AD) with auto-provisioning
+- **Multi-Org Tenancy** — Organizations, cross-workspace analytics, agent sharing
+- **CLI Plugin** — `oav` command with 10 subcommands and Rich terminal output
+
+### User Experience
+- **Onboarding Wizard** — 3-step first-run (Welcome/Connect/Verify) with guided tour
+- **Notification Center** — Real-time WebSocket push, bell + dropdown + full page
+- **Data Export** — Streaming CSV/JSON for agents, events, metrics
+- **Collaboration** — Workspace invites, activity feed, role-based access (admin/member/viewer)
+- **Mobile** — Bottom navigation, bottom sheets, pinch-to-zoom, touch interactions
+- **PWA** — Manifest, service worker, offline support, add-to-home-screen
+
+### Security & Reliability
+- **Rate Limiting** — slowapi (auth 5/min, API 100/min) + nginx layer
+- **JWT** — 15-min access tokens + 7-day httpOnly refresh cookies
+- **Structured Logging** — structlog with JSON output, correlation IDs, PII redaction
+- **Health Probes** — Liveness + readiness (checks postgres/redis)
+- **Graceful Shutdown** — WebSocket drain, connection cleanup
+- **OWASP Audit** — Clean bandit SAST scan
+- **Fernet Encryption** — API keys and secrets encrypted at rest
 
 ---
 
@@ -80,82 +94,122 @@ def my_agent(task):
 
 | Layer | Technology |
 |-------|-----------|
-| **Rendering** | PixiJS v8 (WebGL + WebGPU) |
-| **Animation** | Rive State Machines (60fps, 10-15x smaller than Lottie) |
-| **State Management** | XState v5 (agent FSM) + Zustand (UI state) |
-| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS |
-| **Charts** | Recharts (simple) + Apache ECharts (complex/10M+ points) |
-| **Graph Viz** | React Flow → Cytoscape.js at scale |
-| **Transitions** | GSAP |
-| **Backend** | FastAPI, Python 3.12, SQLAlchemy 2.0 |
-| **Database** | PostgreSQL 16 + TimescaleDB |
-| **Cache/Pubsub** | Redis 7.2 (Streams + Pub/Sub) |
-| **Real-time** | WebSocket + SSE |
-| **Task Queue** | Celery |
-| **Auth** | JWT + OAuth2 (Google, GitHub) |
-| **Infrastructure** | Docker, Nginx, GitHub Actions |
-| **Audio** | Tone.js (muted by default) |
+| **Rendering** | PixiJS 8.1 (WebGL), 3-tier LOD (full/simple/dot) |
+| **3D** | Unreal Engine 5 via Pixel Streaming |
+| **Animation** | GSAP 3.12, @rive-app/canvas 2.21 (progressive) |
+| **State Machines** | XState 5.13 (MachineManager outside React) |
+| **Frontend** | React 18, TypeScript 5.4, Vite 5.3, Tailwind CSS 3.4 |
+| **Charts** | Recharts 2.12 |
+| **Graphs** | ReactFlow 11.11 |
+| **State** | Zustand 4.5, React Query 5.45 |
+| **Backend** | FastAPI 0.110, Python 3.11+, SQLAlchemy 2.0 (async) |
+| **Database** | PostgreSQL 16 + TimescaleDB (hypertables + continuous aggregates) |
+| **Cache/Pubsub** | Redis 7.2 (Streams + Pub/Sub + room-based WebSocket) |
+| **Task Queue** | Celery 5.4 (3 priority queues + dead letter queue) |
+| **Auth** | JWT + refresh tokens + SAML 2.0 + OIDC |
+| **Observability** | Prometheus + Grafana + structlog |
+| **Infrastructure** | Docker Compose, Nginx, GitHub Actions CI |
+| **SDK** | Python SDK with 5 framework adapters + OTLP exporter |
+| **CLI** | Typer + Rich terminal output |
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Docker and Docker Compose
+- Git
+
+### Local Development
+
+```bash
+# Clone
+git clone https://github.com/ashishkots/OpenAgentVisualizer.git
+cd OpenAgentVisualizer
+
+# Start all services
+docker compose up --build -d
+
+# Verify
+curl http://localhost:8000/api/health
+# {"status": "ok"}
+```
+
+**Services:**
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:8000 |
+| Swagger Docs | http://localhost:8000/docs |
+| WebSocket | ws://localhost:8001 |
+| Nginx Proxy | http://localhost:8080 |
+| Prometheus Metrics | http://localhost:8000/metrics |
+
+**Default Login:**
+- Email: `kotsai@gmail.com`
+- Password: `kots@123`
+
+### Production Deployment
+
+```bash
+# Copy and configure production environment
+cp .env.production .env
+# Edit .env — set SECRET_KEY, DATABASE_URL, REDIS_URL, FERNET_KEY
+
+# Start production stack
+docker compose -f docker-compose.prod.yml up -d
+
+# Optional: monitoring (Prometheus + Grafana)
+docker compose -f docker-compose.monitoring.yml up -d
+
+# Optional: UE5 3D viewer (requires GPU)
+docker compose -f docker-compose.ue5.yml up -d
+```
+
+### Load Testing
+
+```bash
+# Start main stack first, then:
+docker compose -f docker-compose.loadtest.yml up -d
+# Open Locust UI at http://localhost:8089
+```
 
 ---
 
 ## Architecture
 
 ```
-Agent Frameworks (LangChain, CrewAI, AutoGen, OpenAI, Anthropic, Custom)
-        │
-        ▼
-   OAV SDK (Python / Node.js / REST)
-        │
+Agent Frameworks (LangChain, CrewAI, AutoGen, OpenAI, Anthropic)
+        |
+        v
+   OAV SDK (Python) --- oav-cli (Terminal)
+        |
    OTLP gRPC:4317 / HTTP:4318
-        │
-        ▼
-┌─────────────────────────────────┐
-│       NGINX Reverse Proxy       │
-├─────────┬───────────┬───────────┤
-│ FastAPI │ WebSocket │   OTLP    │
-│ REST API│  Server   │  Gateway  │
-├─────────┴───────────┴───────────┤
-│     Redis (Streams + Pub/Sub)    │
-├──────────┬──────────┬───────────┤
-│ Persist  │ Aggreg.  │  Celery   │
-│ Writer   │ Engine   │  Workers  │
-├──────────┴──────────┴───────────┤
-│  PostgreSQL 16 + TimescaleDB    │
-└─────────────────────────────────┘
-        │
-        ▼
-┌─────────────────────────────────┐
-│   React + PixiJS Virtual World   │
-│   Rive Animations + GSAP        │
-│   Recharts / ECharts Dashboards  │
-└─────────────────────────────────┘
+        |
+        v
++-------------------------------------------+
+|          NGINX Reverse Proxy              |
+|   (rate limiting, gzip, security headers) |
++--------+----------+----------+-----------+
+| FastAPI | WebSocket | OTLP    | Celery   |
+| REST API| Rooms    | Gateway | Workers  |
+| (v1)   | (Redis)  |         | (3 queues)|
++--------+----------+----------+-----------+
+|        Redis (Streams + Pub/Sub)          |
++--------+----------+-----------+-----------+
+|PostgreSQL 16 + TimescaleDB               |
+|(8 migrations, 50+ tables,                |
+| continuous aggregates, hypertables)      |
++-------------------------------------------+
+        |
+        v
++-------------------------------------------+
+| React 18 + PixiJS Canvas (2D)            |
+| UE5 Pixel Streaming (3D, optional)       |
+| XState FSMs + GSAP Animations            |
+| 30+ Pages, PWA, Mobile Bottom Nav        |
++-------------------------------------------+
 ```
-
----
-
-## Performance Targets
-
-| Metric | Target |
-|--------|--------|
-| Canvas FPS | 60fps with 50 agents |
-| Event ingestion | 100K events/sec |
-| Concurrent agents | 10K per workspace |
-| WebSocket connections | 50K simultaneous |
-| Event-to-render latency | < 500ms (p99) |
-| SDK overhead | < 1ms per event |
-| Time-to-first-value | < 5 minutes |
-
----
-
-## Pricing
-
-| Tier | Price | Agents | Events/mo | Features |
-|------|-------|--------|-----------|----------|
-| **Free** | $0 | 3 | 100K | Virtual world, basic metrics, 24hr retention |
-| **Pro** | $99/mo | 25 | 5M | Gamification, alerts, 30-day retention, session replay |
-| **Team** | $199/mo | 100 | 25M | RBAC, team features, 90-day retention, cost analytics |
-| **Business** | $499/mo | 500 | 100M | SSO/SAML, audit trail, 1yr retention, SLO management |
-| **Enterprise** | Custom | Unlimited | Unlimited | Self-hosted, custom SLA, dedicated support |
 
 ---
 
@@ -163,74 +217,153 @@ Agent Frameworks (LangChain, CrewAI, AutoGen, OpenAI, Anthropic, Custom)
 
 ```
 OpenAgentVisualizer/
-├── OpenAgentVisualizer_Research.md          # Market research (1,830 lines)
-├── Product_Documents/
-│   ├── PIPELINE.md                          # 6-wave development pipeline
-│   ├── 01_Product_Manager/                  # PRD, features, user stories
-│   ├── 02_UX_Designer/                      # Wireframes, user flows, IA
-│   ├── 03_UI_Designer/                      # Component library, design tokens
-│   ├── 04_Gamification_Expert/              # XP system, achievements, economy
-│   ├── 05_Motion_Graphics/                  # Rive state machines, animations
-│   ├── 06_Infographics/                     # Dashboard layouts, KPI cards
-│   ├── 07_Visualization_Expert/             # Virtual world design, data viz
-│   ├── 08_Solution_Architect/               # System architecture, DB schema
-│   ├── 09_Agentic_AI_Architect/             # Agent integration, SDK design
-│   ├── 10_Frontend_Expert/                  # React + PixiJS implementation
-│   ├── 11_Backend_Expert/                   # FastAPI + DB implementation
-│   ├── 12_Fullstack_Expert/                 # SDK, Docker, CI/CD
-│   ├── 13_QA_Expert/                        # Test strategy, 1500+ test cases
-│   ├── 14_Design_System/                    # Unified design system spec
-│   └── agents/handoffs/                     # Inter-agent handoff YAMLs
-└── README.md
+├── src/
+│   ├── backend/                    # FastAPI application
+│   │   ├── app/
+│   │   │   ├── core/              # Config, database, auth, metrics, rate limiting, logging
+│   │   │   ├── models/            # 15+ SQLAlchemy models
+│   │   │   ├── routers/           # 20+ API routers
+│   │   │   ├── schemas/           # Pydantic request/response models
+│   │   │   ├── services/          # Business logic services
+│   │   │   ├── tasks/             # Celery tasks (20+)
+│   │   │   ├── middleware/        # Correlation ID, API versioning
+│   │   │   └── data/             # Seed data (quests, skills, shop, plugins)
+│   │   ├── alembic/versions/      # 8 migrations
+│   │   ├── tests/                 # 30+ test files
+│   │   ├── Dockerfile.prod        # Multi-stage production build
+│   │   └── requirements.txt
+│   ├── frontend/                   # React application
+│   │   ├── src/
+│   │   │   ├── pages/            # 30+ pages
+│   │   │   ├── components/       # 80+ components
+│   │   │   ├── canvas/           # PixiJS rendering engine
+│   │   │   ├── machines/         # XState FSM definitions
+│   │   │   ├── stores/           # 15+ Zustand stores
+│   │   │   ├── hooks/            # 20+ React Query hooks
+│   │   │   └── types/            # TypeScript type definitions
+│   │   ├── public/               # PWA manifest, service worker, icons
+│   │   ├── e2e/                  # Playwright E2E tests
+│   │   ├── Dockerfile.prod       # Multi-stage production build
+│   │   └── package.json
+│   ├── sdk/                       # Python SDK
+│   │   ├── openagentvisualizer/
+│   │   │   ├── core/            # Tracer, event models
+│   │   │   ├── adapters/        # LangChain, CrewAI, AutoGen, OpenAI, Anthropic
+│   │   │   └── exporters/       # OTLP, REST
+│   │   └── tests/
+│   └── cli/                       # CLI plugin (oav command)
+│       ├── oav_cli/
+│       │   ├── commands/         # status, events, metrics, config, etc.
+│       │   ├── client.py         # API client
+│       │   └── display.py        # Rich terminal formatting
+│       └── pyproject.toml
+├── agents/                         # Pipeline docs + handoff YAMLs
+├── docs/
+│   ├── superpowers/
+│   │   ├── specs/                # 14 design specifications
+│   │   └── plans/                # 7 implementation plans
+│   ├── api-specification.md
+│   ├── database-schema.md
+│   ├── sprint-backlog.md          # 7 sprints, 125 features
+│   └── ...
+├── deploy/
+│   ├── nginx/                    # dev.conf + prod.conf
+│   ├── prometheus/               # prometheus.yml + alerts.yml
+│   └── grafana/                  # Pre-built dashboards
+├── tests/load/                    # Locust load tests
+├── docker-compose.yml             # Development stack (9 services)
+├── docker-compose.prod.yml        # Production stack
+├── docker-compose.monitoring.yml  # Prometheus + Grafana
+├── docker-compose.ue5.yml         # UE5 Pixel Streaming
+├── docker-compose.loadtest.yml    # Locust load testing
+├── .github/workflows/ci.yml      # GitHub Actions (7 jobs)
+├── .env.production                # Production env template
+└── CLAUDE.md                      # AI developer instructions
 ```
 
 ---
 
-## Development Pipeline
+## SDK & Framework Support
 
-The project was designed through a **6-wave, 14-agent pipeline**:
-
-| Wave | Agents | Focus |
-|------|--------|-------|
-| **1** | Product Manager, Gamification Expert, Agentic AI Architect | Requirements & Integration Design |
-| **2** | UX Designer, Visualization Expert, Motion Graphics | UX, Data Viz, Animation |
-| **3** | UI Designer, Infographics, Design System | Visual Design & Component Library |
-| **4** | Solution Architect | System Architecture & API Contracts |
-| **5** | Frontend Expert, Backend Expert, Fullstack Expert | Implementation Plans & SDKs |
-| **6** | QA Expert | Test Strategy & CI/CD |
-
-Each wave's agents ran in parallel, with gate criteria ensuring quality before the next wave started.
+| Framework | Adapter | Status |
+|-----------|---------|--------|
+| LangChain | `langchain_adapter.py` | Supported |
+| CrewAI | `crewai_adapter.py` | Supported |
+| AutoGen | `autogen_adapter.py` | Supported |
+| OpenAI | `openai_adapter.py` | Supported |
+| Anthropic | `anthropic_adapter.py` | Supported |
+| Custom | OTLP HTTP/gRPC | Supported |
 
 ---
 
-## Compliance & Accessibility
+## API Overview
 
-- **WCAG 2.2 AA** — Full keyboard navigation, screen reader support, color-blind modes, reduced motion
-- **EU AI Act Article 72** — Audit trail for all agent decisions
-- **SOC 2** — Encryption at rest (AES-256) and in transit (TLS 1.3)
-- **HIPAA-ready** — PII detection and masking in event pipeline
+**100+ endpoints** organized by domain:
+
+| Domain | Endpoints | Description |
+|--------|-----------|-------------|
+| Auth | 4 | Register, login, refresh, SSO |
+| Agents | 8 | CRUD, stats, skills, quests |
+| Events | 5 | Ingest, batch, replay, export |
+| Gamification | 6 | Leaderboard, achievements, XP |
+| Quests | 3 | List, agent progress, claim |
+| Skills | 3 | Trees, agent skills, unlock |
+| Wallet | 2 | Balance, transactions |
+| Shop | 5 | Browse, buy, inventory, equip |
+| Tournaments | 4 | List, enter, leaderboard |
+| Seasons | 2 | Current, leaderboard |
+| Teams | 6 | CRUD, members, stats |
+| Challenges | 3 | List, detail, progress |
+| Notifications | 4 | List, read, mark all, count |
+| Export | 3 | Agents, events, metrics (CSV/JSON) |
+| Webhooks | 6 | CRUD, deliveries, test |
+| Plugins | 6 | Registry, install, manage |
+| SSO | 7 | SAML/OIDC flows, config |
+| Organizations | 9 | CRUD, members, workspaces, analytics |
+| Shared Agents | 3 | Share, list, revoke |
+| Integrations | 12 | OpenTrace/Mesh/Mind/Shield |
+| Health | 3 | Live, ready, status |
+| Metrics | 2 | Aggregates, Prometheus |
+| Admin | 2 | DLQ list, retry |
+
+Full interactive docs at `/docs` (Swagger UI).
 
 ---
 
-## Roadmap
+## Development
 
-| Phase | Timeline | Deliverables |
-|-------|----------|-------------|
-| **MVP** | 8 weeks | Virtual world, agent avatars, task assignment, basic metrics, XP/leveling, Python SDK |
-| **V1** | +3 months | Achievements, Node.js SDK, RBAC, cost attribution, alert webhooks, agent comparison |
-| **V2** | +6 months | LLM-as-Judge quality scoring, enterprise SSO, AI postmortem generator, agent marketplace |
+### Sprint History
+
+| Sprint | Theme | Features |
+|--------|-------|----------|
+| 1 | Backend Core | 19 — Auth, agents, events, OTLP, gamification, WebSocket |
+| 2 | 2D Visualization | 25 — PixiJS canvas, XState FSMs, ReactFlow, 9 dashboard pages |
+| 3 | 3D + Integrations | 10 — UE5 viewer, 4 cross-product integrations, CLI, CI/CD |
+| 4 | Scale & Harden | 20 — Load testing, rate limiting, JWT refresh, health probes |
+| 5 | User Experience | 18 — Onboarding, notifications, export, collaboration, PWA |
+| 6 | Gamification | 14 — Quests, skills, economy, tournaments, teams, challenges |
+| 7 | Platform | 19 — API versioning, webhooks, plugins, SSO, multi-org |
+| **Total** | | **125 features** |
+
+### Architecture Decisions
+
+10 ADRs documented in `docs/superpowers/specs/`:
+- ADR-001: Imperative PixiJS (not declarative @pixi/react)
+- ADR-002: XState MachineManager outside React tree
+- ADR-003: Redis Pub/Sub for WebSocket room routing
+- ADR-004: Pre-computed relationship graph via Celery
+- ADR-005: TimescaleDB continuous aggregates
+- ADR-006: UE5 fallback-first (2D baseline, 3D progressive)
+- ADR-007: Shared circuit breaker pattern for integrations
+- ADR-008: Dual config (env + DB) with Fernet encryption
+- ADR-009: CLI API key auth
+- ADR-010: Prometheus /metrics without auth
 
 ---
 
 ## License
 
 [Functional Source License (FSL)](https://fsl.software/) — converts to MIT after 2 years.
-
----
-
-## Contributing
-
-OpenAgentVisualizer is currently in the design and planning phase. Implementation will begin following the development pipeline outlined in `Product_Documents/PIPELINE.md`.
 
 ---
 
