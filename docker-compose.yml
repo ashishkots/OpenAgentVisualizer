@@ -137,8 +137,8 @@ services:
       - ./src/frontend:/app
       - /app/node_modules
     environment:
-      VITE_API_URL: http://localhost/api
-      VITE_WS_URL: ws://localhost/ws
+      VITE_API_URL: http://backend:8000
+      VITE_WS_URL: ws://websocket:8001
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 15s
