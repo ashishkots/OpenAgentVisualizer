@@ -1,10 +1,11 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, text
 import uuid
 
-from app.core.database import engine, Base, AsyncSessionLocal
+from app.core.database import engine, Base, AsyncSessionLocal, get_db
 from app.core.redis_client import get_redis, close_redis
 from app.core.security import hash_password
 from app.core.config import settings
@@ -95,6 +96,40 @@ _instrumentator.instrument(app).expose(app, endpoint="/metrics", include_in_sche
 @app.get("/api/health")
 async def health() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/api/health/live", tags=["health"])
+async def liveness() -> dict:
+    """Liveness probe — returns 200 if process is running."""
+    return {"status": "alive"}
+
+
+@app.get("/api/health/ready", tags=["health"])
+async def readiness(db: AsyncSession = Depends(get_db)):
+    """Readiness probe — checks all dependencies (postgres + redis)."""
+    checks: dict[str, str] = {}
+
+    # PostgreSQL
+    try:
+        await db.execute(text("SELECT 1"))
+        checks["postgres"] = "ok"
+    except Exception as exc:
+        checks["postgres"] = f"error: {exc}"
+
+    # Redis
+    try:
+        redis = await get_redis()
+        await redis.ping()
+        checks["redis"] = "ok"
+    except Exception as exc:
+        checks["redis"] = f"error: {exc}"
+
+    all_ok = all(v == "ok" for v in checks.values())
+    status_code = 200 if all_ok else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={"status": "ready" if all_ok else "degraded", "checks": checks},
+    )
 
 
 app.include_router(auth.router)
