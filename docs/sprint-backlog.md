@@ -251,6 +251,48 @@
 
 ---
 
+## Sprint 6: Advanced Gamification (Complete)
+
+### Progression
+| ID | Task | Status |
+|----|------|--------|
+| OAV-601 | Quest chains (15 quests: 5 daily, 5 weekly, 5 epic) | Done |
+| OAV-602 | Quest evaluation + reset Celery tasks | Done |
+| OAV-603 | Skill trees (4 trees, 20 nodes, unlock with tokens) | Done |
+| OAV-604 | QuestsPage + SkillTreePage frontend | Done |
+
+### Economy
+| ID | Task | Status |
+|----|------|--------|
+| OAV-611 | Wallet system (credit/debit, auto-create per workspace) | Done |
+| OAV-612 | Marketplace (20 items: 8 cosmetic, 6 boost, 6 title) | Done |
+| OAV-613 | Inventory + equip/unequip system | Done |
+| OAV-614 | ShopPage + InventoryPage + WalletBadge frontend | Done |
+
+### Competitive
+| ID | Task | Status |
+|----|------|--------|
+| OAV-621 | Tournaments (auto-created weekly, scoring, prize distribution) | Done |
+| OAV-622 | Seasonal leaderboards (30-day seasons, auto-rotation, top-10 rewards) | Done |
+| OAV-623 | TournamentsPage + SeasonBanner + leaderboard tabs frontend | Done |
+
+### Social
+| ID | Task | Status |
+|----|------|--------|
+| OAV-631 | Teams (max 10 members, max 5 teams, team stats) | Done |
+| OAV-632 | Cooperative challenges (3 weekly, progress tracking, rewards) | Done |
+| OAV-633 | TeamsPage + TeamDetailPage + ChallengesPage frontend | Done |
+
+### Key Deliverables
+- **17 new database tables** (migration 007): quests, skills, wallet, shop, tournaments, seasons, teams, challenges
+- **28 new API endpoints** across 8 routers
+- **Seed data**: 15 quests, 20 skill nodes, 20 shop items
+- **8 Celery tasks**: quest eval/reset, tournament create/score/finalize, season rotation, challenge progress/creation
+- **8 new frontend pages**: Quests, Skills, Shop, Inventory, Tournaments, Teams, TeamDetail, Challenges
+- **Wallet economy**: token currency earned from quests/achievements/levels, spent in shop and tournaments
+
+---
+
 ## Velocity Notes
 
 - Sprint 1 delivered 19 features: full backend platform
@@ -287,5 +329,11 @@
   - 5 new backend routers, 2 new Celery tasks
   - 30+ new frontend components across 5 subsystems
   - PWA with service worker, offline support, bottom navigation
+- Sprint 6 delivered 14 gamification features: quests, skill trees, wallet, shop, tournaments, seasons, teams, challenges
+  - 4 parallel agent groups (2 backend + 2 frontend)
+  - 17 new database tables (migration 007)
+  - 28 new API endpoints, 8 Celery tasks
+  - 8 new frontend pages with full gamification UX
+  - Virtual token economy with earn/spend loop
 - Key visualization libraries fully integrated: PixiJS, XState, ReactFlow, GSAP (Rive deferred as progressive enhancement)
-- All 5 sprints complete: 92 features delivered
+- All 6 sprints complete: 106 features delivered
