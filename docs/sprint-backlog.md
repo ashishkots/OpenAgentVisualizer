@@ -293,6 +293,60 @@
 
 ---
 
+## Sprint 7: Platform & Ecosystem (Complete) — FINAL SPRINT
+
+### Public API Docs
+| ID | Task | Status |
+|----|------|--------|
+| OAV-701 | API v1 versioning (/api/v1/ prefix + backward compat) | Done |
+| OAV-702 | OpenAPI schema polish (tags, examples, descriptions) | Done |
+| OAV-703 | API docs page (Swagger UI, SDK snippets, changelog) | Done |
+
+### Webhooks
+| ID | Task | Status |
+|----|------|--------|
+| OAV-711 | Webhook CRUD + HMAC-SHA256 signing | Done |
+| OAV-712 | Webhook delivery with retry (3x exponential backoff) | Done |
+| OAV-713 | Delivery log + test endpoint | Done |
+| OAV-714 | Webhook management UI (Settings tab) | Done |
+
+### Plugin System
+| ID | Task | Status |
+|----|------|--------|
+| OAV-721 | Plugin registry (5 seed entries, browse + search) | Done |
+| OAV-722 | Plugin install/enable/disable/uninstall lifecycle | Done |
+| OAV-723 | Hook dispatcher with sandboxed execution (5s timeout) | Done |
+| OAV-724 | Plugin registry + manager frontend pages | Done |
+
+### SSO/SAML
+| ID | Task | Status |
+|----|------|--------|
+| OAV-731 | SAML 2.0 SP-initiated flow (python3-saml) | Done |
+| OAV-732 | OIDC authorization code flow (authlib) | Done |
+| OAV-733 | SSO config CRUD + auto-provision users | Done |
+| OAV-734 | SSO login UI + Settings config form | Done |
+
+### Multi-Org Tenancy
+| ID | Task | Status |
+|----|------|--------|
+| OAV-741 | Organization CRUD + member management | Done |
+| OAV-742 | Cross-workspace analytics aggregation | Done |
+| OAV-743 | Cross-workspace agent sharing (read/write permissions) | Done |
+| OAV-744 | Org switcher, settings, analytics, shared agents frontend | Done |
+
+### Key Deliverables
+- **9 new database tables** (migration 008): webhooks, deliveries, plugins, registry, SSO configs/sessions, organizations, org members, shared agents
+- **30 new API endpoints** across 7 routers
+- **API versioning**: /api/v1/ prefix with backward compatibility
+- **Webhook system**: HMAC-SHA256 signed delivery, 3x retry, 8 event types
+- **Plugin system**: manifest-based, sandboxed execution, 5s timeout, hook dispatcher
+- **SSO**: SAML 2.0 + OIDC, auto-provisioning, Fernet-encrypted secrets
+- **Multi-org**: organization hierarchy, cross-workspace analytics, agent sharing
+- **Frontend**: API docs page, webhook management, plugin registry/manager, SSO config, org switcher + settings + analytics, shared agents page
+- **Tests**: 19 frontend + 63 backend tests for Sprint 7
+
+---
+
 ## Velocity Notes
 
 - Sprint 1 delivered 19 features: full backend platform
@@ -335,5 +389,13 @@
   - 28 new API endpoints, 8 Celery tasks
   - 8 new frontend pages with full gamification UX
   - Virtual token economy with earn/spend loop
+- Sprint 7 delivered 19 platform features: API versioning, webhooks, plugins, SSO, multi-org tenancy
+  - 4 parallel agent groups (2 backend + 2 frontend)
+  - 9 new database tables (migration 008)
+  - 30 new API endpoints, 7 new routers
+  - SAML 2.0 + OIDC enterprise SSO
+  - Plugin system with sandboxed execution + hook dispatcher
+  - Webhook delivery with HMAC signing + exponential retry
+  - Multi-org hierarchy with cross-workspace agent sharing
 - Key visualization libraries fully integrated: PixiJS, XState, ReactFlow, GSAP (Rive deferred as progressive enhancement)
-- All 6 sprints complete: 106 features delivered
+- **ALL 7 SPRINTS COMPLETE: 125 features delivered — product roadmap fulfilled**
