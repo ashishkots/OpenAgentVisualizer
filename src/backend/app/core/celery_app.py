@@ -34,6 +34,7 @@ celery_app = Celery(
         "app.tasks.tournaments",
         "app.tasks.seasons",
         "app.tasks.challenges",
+        "app.tasks.webhooks",
     ],
 )
 
@@ -77,6 +78,8 @@ celery_app.conf.update(
         "app.tasks.seasons.*": {"queue": QUEUE_DEFAULT},
         "app.tasks.challenges.update_challenge_progress": {"queue": QUEUE_DEFAULT},
         "app.tasks.challenges.create_weekly_challenges": {"queue": QUEUE_BULK},
+        "app.tasks.webhooks.deliver_webhook": {"queue": QUEUE_CRITICAL},
+        "app.tasks.webhooks.cleanup_deliveries": {"queue": QUEUE_BULK},
     },
     beat_schedule={
         # Refresh the agent leaderboard materialized view every 5 minutes
@@ -128,6 +131,11 @@ celery_app.conf.update(
         "create-weekly-challenges": {
             "task": "app.tasks.challenges.create_weekly_challenges",
             "schedule": 604800.0,  # 7 days
+        },
+        # Clean up successful webhook deliveries older than 30 days (runs daily)
+        "cleanup-webhook-deliveries": {
+            "task": "app.tasks.webhooks.cleanup_deliveries",
+            "schedule": 86400.0,  # 24 hours
         },
     },
 )
