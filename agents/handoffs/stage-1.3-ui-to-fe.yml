@@ -1,0 +1,92 @@
+handoff:
+  from: "UI Designer"
+  to: "Frontend Expert"
+  stage: "1.3"
+  track: "Product"
+  status: "COMPLETE"
+
+  artifacts:
+    - path: "docs/superpowers/specs/2026-03-27-sprint2-ui-design-system.md"
+      type: "design"
+      summary: >
+        Complete visual design system covering: (1) full color palette with all 14 tokens
+        including 4 new Sprint 2 additions (oav-gold, oav-xp, oav-surface-hover,
+        oav-surface-active), hex values and PixiJS integer equivalents for all 10 level ring
+        colors, FSM state colors with canvas tint and CSS badge classes; (2) typography scale
+        with 13 named type roles and exact Tailwind class mappings, plus 7 PixiJS TextStyle
+        objects for canvas text rendering; (3) spacing, border radius, shadow/elevation, and
+        z-index layer tokens; (4) 18 component visual specs covering all Sprint 2 components
+        with exact Tailwind class strings, states (default/hover/active/disabled/loading/error),
+        and real-time update behaviors; (5) animation specs with GSAP timeline code for XP gain,
+        level-up celebration, achievement unlock, FSM transitions, leaderboard row FLIP, page
+        transitions, and skeleton loading — all with prefers-reduced-motion fallbacks; (6) icon
+        system using lucide-react with specific icon assignments for all 10 achievements,
+        8 nav items, 5 FSM states, 3 alert severities, and 20+ general UI roles; (7) PixiJS
+        canvas visual specs including grid background, AgentSprite layer stack (10 layers),
+        level-specific ring thickness/glow, selection highlight, React-overlay tooltip
+        positioning, and minimap rendering; (8) responsive adaptations for all 9 pages at
+        mobile/tablet/desktop breakpoints with 44px touch targets and bottom-sheet patterns;
+        (9) complete Tailwind config extension with 4 new colors, 13 keyframes, 13 animation
+        utilities, 5 glow shadow tokens, and z-index/duration scale extensions.
+
+    - path: "src/frontend/tailwind.config.js"
+      type: "config"
+      summary: >
+        Reference for existing config structure. The design system document (Section 9)
+        contains the full replacement config with all extensions. Frontend Expert must
+        apply the config block from Section 9 to replace the existing tailwind.config.js.
+
+  evaluation_result:
+    verdict: "PASS"
+    confidence: "HIGH"
+    findings: >
+      All UX wireframe requirements have been translated to precise implementation specs.
+      Color tokens: 4 new tokens defined with exact hex values, PixiJS integer equivalents,
+      Tailwind utility class names, and WCAG contrast ratios verified. Level ring system:
+      all 10 levels fully specified for both CSS (dashboard components) and PixiJS canvas
+      (sprite tint values, ring thickness, glow radius, particle counts). FSM states: all
+      5 states have canvas tint, CSS badge class, pulse behavior, canvas animation, and
+      icon overlay specifications. Animation timing: all GSAP timeline parameters are
+      implementation-ready JavaScript code blocks — no further interpretation required.
+      prefers-reduced-motion fallbacks defined for every animation. Component specs: all
+      18 key components have full state coverage with exact Tailwind class strings. PixiJS
+      layer stack for AgentSprite is defined as 10 named child layers with z-ordering.
+      Canvas tooltip uses React DOM overlay pattern (confirmed per ADR-001 in architecture).
+      Icon system fully mapped to lucide-react with specific icon names per usage context.
+      Rive animations treated as progressive enhancement with explicit GSAP fallback paths.
+      One design decision worth noting: oav-accent on oav-surface is 3.4:1 contrast — rule
+      added that accent text on surface cards must use font-semibold or text-sm minimum.
+
+  blockers: []
+
+  dependencies_met: true
+
+  notes: >
+    Key UI design decisions made during this stage:
+    (1) XP bar fill uses cyan-to-blue gradient (oav-xp to oav-accent) for levels 1-4 and
+    gold-to-amber gradient (oav-gold to oav-warning) for levels 5+, reinforcing the gold
+    theme for expert-tier agents without requiring a new color token.
+    (2) AgentAvatar fill color is generated deterministically from agent name hash cycling
+    through 8 hues — this ensures visual variety without requiring stored avatar images and
+    keeps the bundle asset-free for MVP.
+    (3) Rive animations are deferred to Sprint 3 asset production. All three animation
+    trigger points (level_up_celebration, achievement_unlock, critical_error) have complete
+    GSAP fallback implementations that are production-quality and not placeholder.
+    (4) Canvas tooltip is a React DOM overlay (not a PixiJS Graphics tooltip) per the
+    existing architectural pattern in the codebase. This allows standard HTML/Tailwind
+    styling and avoids custom PixiJS text layout math.
+    (5) The dot-grid canvas background uses a TilingSprite that moves with pan but does NOT
+    scale with zoom — this creates a subtle parallax effect that reinforces spatial depth.
+    (6) Achievement icons use lucide-react with noted fallback substitutions for icons
+    that may be absent in older versions (Footprints → Activity, Coins → DollarSign,
+    Handshake → Users). Frontend Expert should verify availability in the installed version.
+    (7) All GSAP animations use the animateSafe() wrapper pattern defined in Section 5.8
+    to centralize prefers-reduced-motion enforcement.
+    (8) The Tailwind config keyframe for 'shimmer' requires a companion CSS class in
+    index.css (not expressible purely as a Tailwind utility) — the class definition is
+    provided in Section 5.7.
+    (9) Z-index layer 80 is reserved exclusively for the Level 10 Transcendent screen
+    flash overlay — Frontend Expert must not use this layer for any other purpose.
+
+  timestamp: "2026-03-27T16:45:00Z"
+  step_count: 1

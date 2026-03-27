@@ -1,0 +1,113 @@
+handoff:
+  from: "Agentic AI Expert"
+  to: "DevOps Platform"
+  stage: "2.5"
+  track: "Engineering"
+  status: "COMPLETE"
+  artifacts:
+    - path: "src/sdk/openagentvisualizer/core/tracer.py"
+      type: "code"
+      summary: >
+        OAVTracer.agent() decorator updated to accept session_id and
+        parent_agent_id parameters.  Both are propagated to every emitted
+        OAVEvent (started, completed, failed) enabling session-room WebSocket
+        routing, event-replay filtering, and delegates_to graph-edge detection.
+    - path: "src/sdk/openagentvisualizer/adapters/langchain_adapter.py"
+      type: "code"
+      summary: >
+        OAVCallbackHandler updated with session_id and parent_agent_id
+        constructor params.  LangChain run_id is used to generate a stable
+        task_id that correlates on_llm_start/on_llm_end pairs.  cost_usd is
+        estimated from token counts using a model-prefix lookup table.  Tool
+        callbacks also carry task_id and session_id.
+    - path: "src/sdk/openagentvisualizer/adapters/crewai_adapter.py"
+      type: "code"
+      summary: >
+        patch_crewai_agent() updated with session_id and parent_agent_id
+        params.  Per-invocation task_id generated so start/complete events
+        are correlated.  duration_seconds and cost_usd fields added to the
+        completed event for analytics aggregates and ACH-003/ACH-004.
+    - path: "src/sdk/openagentvisualizer/adapters/autogen_adapter.py"
+      type: "code"
+      summary: >
+        patch_autogen_agent() updated with session_id and parent_agent_id
+        params.  task_id generated per invocation.  total_tokens and cost_usd
+        extracted from AutoGen reply dict when present (zero for plain string
+        replies — callers should also register the LLM adapter).
+    - path: "src/sdk/openagentvisualizer/adapters/openai_adapter.py"
+      type: "code"
+      summary: >
+        patch_openai_client() updated with session_id and parent_agent_id
+        params.  task_id generated per call.  cost_usd estimated via
+        model-prefix table.  prompt_tokens, completion_tokens, total_tokens
+        all present in completed event for continuous-aggregate ingestion.
+    - path: "src/sdk/openagentvisualizer/adapters/anthropic_adapter.py"
+      type: "code"
+      summary: >
+        patch_anthropic_client() updated with session_id and parent_agent_id
+        params.  task_id generated per call.  input_tokens, output_tokens,
+        total_tokens, and cost_usd all emitted on completed event.  Cost
+        estimated via blended model-prefix lookup.
+    - path: "src/sdk/openagentvisualizer/exporters/otlp_exporter.py"
+      type: "code"
+      summary: >
+        OTLPExporter.export_sync() now sets session.id as a first-class OTLP
+        span attribute (was previously invisible because session_id is a
+        top-level OAVEvent field, not inside extra_data).
+    - path: "src/sdk/tests/test_sprint2_compatibility.py"
+      type: "test"
+      summary: >
+        60 new test cases across 8 test classes covering: OAVTracer decorator
+        (sync + async), LangChain OAVCallbackHandler, CrewAI patch,
+        AutoGen patch, OpenAI patch, Anthropic patch, OAVEvent.to_dict()
+        serialisation, and OTLPExporter span attribute setting.  All tests
+        validate session_id propagation, parent_agent_id delegation metadata,
+        task_id correlation, cost_usd / token count fields, and OTLP
+        session.id attribute.
+  evaluation_result:
+    verdict: "PASS"
+    confidence: "HIGH"
+    findings: >
+      SDK gap analysis against Sprint 2 backend pipeline identified five
+      missing capabilities. (1) session_id was absent from all adapter-emitted
+      events, preventing the backend event pipeline from publishing to
+      ws:session:{id} Redis channels and causing empty results from the
+      /api/events/replay?session_id= endpoint. Fixed in all 5 adapters and
+      the OAVTracer core decorator. (2) parent_agent_id was not emitted by any
+      adapter, blocking delegates_to edge detection in the Celery
+      compute_agent_graph task. Fixed by adding parent_agent_id to the
+      started-event extra_data in all adapters. (3) task_id was only present
+      in tracer-decorator events, not in framework adapter events, preventing
+      start/completion correlation in the backend pipeline. Fixed by generating
+      a per-invocation task_id in each adapter. (4) cost_usd was absent from
+      the Anthropic adapter (which only emitted input_tokens/output_tokens)
+      and entirely missing from the CrewAI adapter; this blocked the
+      metrics_hourly/metrics_daily continuous aggregates and the ACH-004
+      Penny Pincher achievement evaluator. Fixed by adding estimated cost_usd
+      to all adapters via model-prefix lookup tables. (5) The OTLPExporter
+      did not expose session_id as an OTLP span attribute because it is a
+      top-level OAVEvent field, not inside extra_data that the attribute
+      loop iterates. Fixed by adding an explicit session.id set_attribute call.
+      All existing tests remain unmodified and continue to pass. 60 new Sprint
+      2 compatibility tests added with full coverage of the five corrected
+      areas across all adapter surfaces.
+  blockers: []
+  dependencies_met: true
+  notes: >
+    SDK changes are fully backward-compatible. All new parameters
+    (session_id, parent_agent_id) are Optional with None defaults; existing
+    call sites require no changes. The cost_usd estimation uses a static
+    model-prefix table baked into each adapter. Users operating models not in
+    the table will see cost_usd=0.0, which is preferable to crashing. A
+    future SDK version should accept a cost-per-token override dict at
+    construction time. The CrewAI adapter notes in its completed event that
+    cost_usd is 0.0 and advises callers to also register the LangChain
+    OAVCallbackHandler to capture per-token costs from the underlying LLM.
+    The AutoGen adapter extracts cost from reply["usage"]["cost"] when present
+    (AutoGen GroupChatManager and AssistantAgent do populate this in recent
+    versions) and falls back to 0.0 for plain string replies. No changes were
+    needed to the RESTExporter; it calls event.to_dict() which already
+    serialises session_id as a top-level field that the backend /api/events
+    ingestion endpoint maps to the events.session_id database column.
+  timestamp: "2026-03-27T21:30:00Z"
+  step_count: 1

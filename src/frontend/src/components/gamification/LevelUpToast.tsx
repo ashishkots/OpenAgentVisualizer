@@ -1,52 +1,72 @@
 import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { AgentAvatar } from '../ui/AgentAvatar';
+import { getLevelName } from '../../lib/xpLevels';
+import { triggerScreenFlash } from '../../canvas/animations/gsapAnimations';
+import type { LevelUp } from '../../types/gamification';
 
-// GSAP is used dynamically to avoid SSR issues
 interface Props {
-  agentName: string;
-  newLevel: number;
-  newLevelName: string;
-  onDone: () => void;
+  event: LevelUp;
+  onDismiss: () => void;
 }
 
-export function LevelUpToast({ agentName, newLevel, newLevelName, onDone }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
+export function LevelUpToast({ event, onDismiss }: Props) {
+  const toastRef = useRef<HTMLDivElement>(null);
+  const isTranscendent = event.new_level >= 10;
 
   useEffect(() => {
-    if (!ref.current) return;
-    // Dynamically import GSAP to avoid test environment issues
-    import('gsap').then(({ default: gsap }) => {
-      gsap.fromTo(
-        ref.current,
-        { y: 40, opacity: 0, scale: 0.8 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.4,
-          ease: 'back.out(1.7)',
-          onComplete: () => {
-            gsap.to(ref.current, {
-              opacity: 0,
-              delay: 2,
-              duration: 0.3,
-              onComplete: onDone,
-            });
-          },
-        }
-      );
+    const el = toastRef.current;
+    if (!el) return;
+
+    gsap.from(el, {
+      y: 20,
+      scale: 0.8,
+      opacity: 0,
+      duration: 0.4,
+      ease: 'back.out(1.7)',
     });
-  }, [onDone]);
+
+    if (isTranscendent) {
+      triggerScreenFlash();
+    }
+
+    const timer = setTimeout(() => {
+      if (!el) return;
+      gsap.to(el, {
+        y: 10,
+        opacity: 0,
+        duration: 0.3,
+        ease: 'power2.in',
+        onComplete: onDismiss,
+      });
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [onDismiss, isTranscendent]);
+
+  const levelTitle = getLevelName(event.new_level);
 
   return (
     <div
-      ref={ref}
-      className="fixed bottom-8 right-8 bg-oav-surface border border-oav-border rounded-xl px-6 py-4 shadow-xl z-50"
-      style={{ opacity: 0 }}
+      ref={toastRef}
+      className="flex items-center gap-4 w-80 max-w-[90vw] bg-oav-surface border border-oav-gold/60 rounded-xl p-4 shadow-xl"
+      role="alert"
+      aria-live="polite"
     >
-      <p className="text-oav-text font-bold">Level Up!</p>
-      <p className="text-oav-muted text-sm">
-        {agentName} reached Level {newLevel} — {newLevelName}
-      </p>
+      <AgentAvatar
+        name={event.agent_name}
+        level={event.new_level}
+        size="md"
+      />
+      <div>
+        <p className="text-xs text-oav-gold font-medium uppercase tracking-wide mb-0.5">
+          Level Up!
+        </p>
+        <p className="text-sm font-bold text-oav-text">{event.agent_name}</p>
+        <p className="text-xs text-oav-muted">
+          Reached Level {event.new_level} — {levelTitle}
+        </p>
+      </div>
     </div>
   );
 }

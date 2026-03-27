@@ -1,0 +1,89 @@
+handoff:
+  from: "Backend Expert"
+  to: "Code Reviewer"
+  stage: "2.2b"
+  track: "Engineering"
+  status: "COMPLETE"
+  artifacts:
+    - path: "src/backend/app/services/websocket_manager.py"
+      type: "code"
+      summary: "Refactored WebSocketManager to RoomWebSocketManager. Supports room-based subscriptions (workspace:{id}, agent:{id}, session:{id}), per-room sequence counters, Redis Pub/Sub fan-out to subscribers, and dead-connection pruning."
+    - path: "src/backend/app/services/event_pipeline.py"
+      type: "code"
+      summary: "Updated EventPipeline.publish() to fan out to three Redis channels: ws:workspace:{id}, ws:agent:{id} (when agent_id present), ws:session:{id} (when session_id present). Switched serialization from json to orjson."
+    - path: "src/backend/app/routers/websocket.py"
+      type: "code"
+      summary: "Updated WebSocket router to use RoomWebSocketManager. Handles subscribe/unsubscribe/sync actions from client. Auto-subscribes to workspace room on connect. Added room access validation and sync snapshot builder. Added REST endpoints POST/DELETE /api/ws/rooms/{room_id}/subscribe|unsubscribe."
+    - path: "src/backend/app/models/achievement.py"
+      type: "code"
+      summary: "New Achievement SQLAlchemy model with unique constraint (workspace_id, agent_id, achievement_id) to prevent duplicate awards. Stores achievement_id (ACH-001..010), achievement_name, xp_bonus, unlocked_at."
+    - path: "src/backend/app/services/achievement_definitions.py"
+      type: "code"
+      summary: "Static definitions for all 10 achievements (ACH-001 through ACH-010) as frozen dataclasses. Each definition has id, name, description, condition_summary, xp_bonus, icon."
+    - path: "src/backend/app/services/gamification_service.py"
+      type: "code"
+      summary: "Upgraded from 5-level to 10-level XP system. LEVEL_THRESHOLDS now has 10 entries [0,500,1500,3500,7000,12000,20000,35000,60000,100000]. Added xp_for_trigger(), level_name(), xp_to_next_level(). XP_AWARDS dict maps trigger names to PRD-specified amounts. Backward-compatible: compute_xp_award() and process_xp_gain() preserved."
+    - path: "src/backend/app/tasks/achievements.py"
+      type: "code"
+      summary: "Celery task evaluate_achievements(workspace_id, agent_id) evaluates all 10 achievement conditions, awards earned achievements atomically, handles race conditions via IntegrityError retry, and publishes WebSocket events via Redis Pub/Sub. Includes refresh_leaderboard() task for materialized view refresh."
+    - path: "src/backend/app/tasks/graph.py"
+      type: "code"
+      summary: "Celery task compute_agent_graph(workspace_id) builds the agent relationship graph from event history (shared_session, delegates_to, monitors edges), serializes to JSON, and caches in Redis with 5-minute TTL. Retries on failure (max 3)."
+    - path: "src/backend/app/routers/gamification.py"
+      type: "code"
+      summary: "Enhanced leaderboard with period (daily/weekly/monthly/all_time) and category (xp/tasks/cost_efficiency/streaks) filters. Added GET /api/gamification/achievements/definitions and GET /api/gamification/achievements/{agent_id} endpoints. Achievement count included in leaderboard entries."
+    - path: "src/backend/app/routers/agents.py"
+      type: "code"
+      summary: "Added GET /api/agents/graph endpoint. Serves cached graph from Redis in <200ms; returns HTTP 202 on cache miss and enqueues Celery task. Route ordering: /graph defined before /{agent_id}/stats to avoid path shadowing."
+    - path: "src/backend/app/routers/events.py"
+      type: "code"
+      summary: "Added GET /api/events/replay endpoint with cursor-based pagination, optional agent_id/session_id/start/end filters, limit up to 500. Results ordered by timestamp ASC for natural playback order."
+    - path: "src/backend/app/routers/metrics.py"
+      type: "code"
+      summary: "Added GET /api/metrics/aggregates?interval=hourly|daily&period=24h|7d|30d|90d endpoint. Queries TimescaleDB continuous aggregate views (metrics_hourly, metrics_daily). Gracefully falls back to empty result with note when views unavailable (e.g. non-TimescaleDB env)."
+    - path: "src/backend/app/core/celery_app.py"
+      type: "code"
+      summary: "Added app.tasks.graph and app.tasks.achievements to Celery include list. Added beat_schedule entry for refresh_leaderboard every 5 minutes."
+    - path: "src/backend/app/schemas/achievement.py"
+      type: "code"
+      summary: "New Pydantic schemas: AchievementRead, AchievementDefinitionRead, GraphNode, GraphEdge, AgentGraph."
+    - path: "src/backend/app/schemas/gamification.py"
+      type: "code"
+      summary: "Updated LeaderboardEntry with achievement_count and trend fields. Added LeaderboardResponse wrapper with period and category fields."
+    - path: "src/backend/alembic/versions/003_achievements_and_continuous_aggregates.py"
+      type: "code"
+      summary: "Migration 003 creates: achievements table with unique constraint, additional indexes on events(agent_id,timestamp) and events(session_id,timestamp) for replay, TimescaleDB continuous aggregates metrics_hourly and metrics_daily, and agent_leaderboard materialized view. All TimescaleDB DDL is wrapped in try/except for non-TimescaleDB env compatibility."
+    - path: "src/backend/tests/"
+      type: "test"
+      summary: "New test files: test_websocket_rooms.py (unit + integration), test_achievements.py (service unit + API), test_event_replay.py (API), test_agent_graph.py (schema + API), test_leaderboard.py (API with all period/category variants), test_metrics_aggregates.py (API). Updated conftest.py to patch module-level redis_client._redis_pool with fakeredis. Updated test_gamification.py for 10-level system. Updated test_events.py for multi-channel pub/sub."
+  evaluation_result:
+    verdict: "PASS"
+    confidence: "HIGH"
+    findings: >
+      All 5 OAV tickets implemented: OAV-221 (WebSocket rooms), OAV-222 (event replay),
+      OAV-223 (agent relationship graph), OAV-224 (achievement system), OAV-225
+      (continuous aggregates). Gamification upgraded to 10-level system per PRD.
+      Key design decisions: (1) RoomWebSocketManager is a drop-in refactor of
+      WebSocketManager — the global `manager` singleton is maintained, the
+      WebSocket endpoint's auth flow is unchanged. (2) Achievement evaluation is
+      idempotent: unique DB constraint + IntegrityError retry prevents double-awards
+      even under concurrent Celery workers. (3) Graph endpoint returns HTTP 202 on
+      cache miss per ADR-004 (pre-computed graph, not live query). (4) Continuous
+      aggregate DDL is guarded by try/except so migration 003 runs in plain
+      PostgreSQL and SQLite test environments. (5) All new endpoints follow existing
+      router -> service -> model clean architecture pattern. (6) Route ordering
+      is correct throughout: static paths before parameterized paths.
+  blockers: []
+  dependencies_met: true
+  notes: >
+    The Celery tasks (graph.py, achievements.py) use psycopg2 synchronous driver.
+    Ensure psycopg2-binary is added to requirements.txt for production Celery worker
+    containers (it is a transitive dependency of many packages but should be explicit).
+    The rate-limit anti-cheat (max 50 XP transactions/agent/minute) is specified as a
+    constant (XP_RATE_LIMIT_PER_MINUTE) and documented but enforcement at the DB/Redis
+    layer is deferred to the XP award endpoint implementation (not in scope for this
+    sprint's backend — the gamification router's POST /api/gamification/xp was Sprint 1
+    and is not modified here). Frontend Expert can use the WebSocket room endpoints
+    immediately — the subscribe/unsubscribe/sync protocol is fully implemented.
+  timestamp: "2026-03-27T16:00:00Z"
+  step_count: 1

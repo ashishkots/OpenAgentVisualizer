@@ -21,6 +21,10 @@ class OTLPExporter:
             span.set_attribute("workspace.id", event.workspace_id)
             if event.agent_id:
                 span.set_attribute("agent.id", event.agent_id)
+            # session.id is a first-class attribute required for Sprint 2
+            # session-room WebSocket routing and event-replay pagination.
+            if event.session_id:
+                span.set_attribute("session.id", event.session_id)
             for k, v in (event.extra_data or {}).items():
                 if isinstance(v, (str, int, float, bool)):
                     span.set_attribute("oav.{}".format(k), v)

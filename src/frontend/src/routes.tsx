@@ -20,7 +20,8 @@ export function AppRoutes() {
           </RequireAuth>
         }
       />
-      <Route path="/" element={<Navigate to="/world" replace />} />
+      {/* Root redirect: / -> /dashboard */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }

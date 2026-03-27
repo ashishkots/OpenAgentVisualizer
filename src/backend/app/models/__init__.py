@@ -4,6 +4,7 @@ from app.models.event import Event, Span, AgentSession
 from app.models.metrics import MetricsRaw, MetricsAgg
 from app.models.gamification import XPTransaction, Alert
 from app.models.audit import AuditLog
+from app.models.achievement import Achievement
 
 __all__ = [
     "User", "Workspace", "WorkspaceMember", "APIKey",
@@ -12,4 +13,5 @@ __all__ = [
     "MetricsRaw", "MetricsAgg",
     "XPTransaction", "Alert",
     "AuditLog",
+    "Achievement",
 ]

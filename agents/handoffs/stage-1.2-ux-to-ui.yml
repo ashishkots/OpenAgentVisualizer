@@ -1,0 +1,19 @@
+handoff:
+  from: "UX Designer"
+  to: "UI Designer"
+  stage: "1.2"
+  track: "Product"
+  status: "COMPLETE"
+  artifacts:
+    - path: "docs/superpowers/specs/2026-03-27-sprint2-ux-wireframes.md"
+      type: "design"
+      summary: "Sprint 2 UX wireframes covering information architecture (9 pages + login), text-based page wireframes with 12-column grid layouts, interaction flows (canvas navigation, real-time updates, topology, session replay, leaderboard, alert lifecycle), complete React component hierarchy for all pages, Zustand state management map (6 stores with field-level detail), gamification UX patterns (XP gain, level-up celebration, achievement unlock, leaderboard animations, avatar visual progression across 10 levels), WCAG 2.1 AA accessibility spec, responsive breakpoint definitions, and component naming conventions."
+  evaluation_result:
+    verdict: "PASS"
+    confidence: "HIGH"
+    findings: "All 9 application pages have detailed wireframes with responsive behavior at 375px/768px/1024px/1440px breakpoints. Component hierarchy covers 80+ components organized in 12 directories. State management defines 6 Zustand stores with clear ownership boundaries between React Query (API cache) and Zustand (WebSocket-driven state). Gamification UX patterns specify exact GSAP timeline parameters (durations, easing, property values) for XP gain, level-up, achievement unlock, and leaderboard animations. Canvas keyboard navigation meets WCAG 2.1 AA requirements including Tab cycling through agents, Enter for selection, and arrow keys for panning. Color contrast verified for all token combinations -- one action item noted (oav-accent on oav-surface is 3.4:1, passes graphical but not body text threshold). All 10 PRD-defined level visual effects are specified with PixiJS rendering details. Open question 4 (session replay vs canvas) resolved as separate timeline with optional canvas sync toggle."
+  blockers: []
+  dependencies_met: true
+  notes: "Key UX decisions: (1) Dashboard is the new landing page after login, replacing /world -- provides better overview for returning users. (2) Agent Detail is now a full page with 5 tabs, not just a slide-in panel -- too much content for a panel. (3) AgentStatus type must change from idle/working/thinking/communicating/error to idle/active/waiting/error/complete per PRD FSM definition -- this is a breaking change affecting types, stores, components, and canvas sprites. (4) xpLevels.ts must be rewritten from 5-level to 10-level system per PRD formula. (5) Sidebar extracted from AppShell into dedicated component with expand/collapse and mobile bottom tab bar. (6) ReplayPage renamed to SessionsPage at /sessions. (7) Four new color tokens needed: oav-gold, oav-xp, oav-surface-hover, oav-surface-active. (8) All GSAP animations have prefers-reduced-motion fallbacks (instant transitions). (9) Rive animations are progressive enhancement -- all effects work with GSAP-only fallback. UI Designer should decide whether to create .riv assets or defer to Sprint 3."
+  timestamp: "2026-03-27T13:30:00Z"
+  step_count: 1

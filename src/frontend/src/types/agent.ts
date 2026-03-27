@@ -1,4 +1,6 @@
-export type AgentStatus = 'idle' | 'working' | 'thinking' | 'communicating' | 'error';
+// Sprint 2: AgentStatus updated from idle|working|thinking|communicating|error
+// to the canonical 5-state FSM: idle|active|waiting|error|complete
+export type AgentStatus = 'idle' | 'active' | 'waiting' | 'error' | 'complete';
 
 export interface Agent {
   id: string;
@@ -14,6 +16,7 @@ export interface Agent {
   total_cost_usd: number;
   created_at: string;
   updated_at: string;
+  last_active_at?: string;
 }
 
 export interface Task {
@@ -33,4 +36,16 @@ export interface AgentPosition {
   x: number;
   y: number;
   zone: string;
+}
+
+export interface AgentRelationship {
+  source: string;
+  target: string;
+  relationship_type: 'delegates_to' | 'shared_session' | 'data_flow';
+  weight: number;
+}
+
+export interface AgentGraph {
+  agents: Agent[];
+  relationships: AgentRelationship[];
 }

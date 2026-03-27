@@ -29,6 +29,7 @@ async def client():
     from app.main import app
     from app.core.database import Base, get_db
     from app.routers import events
+    import app.core.redis_client as redis_module
 
     # Override lifespan to skip PostgreSQL/Redis connections
     app.router.lifespan_context = mock_lifespan
@@ -47,10 +48,17 @@ async def client():
                 await session.rollback()
                 raise
 
-    # Mock Redis with fakeredis
+    # Single shared fakeredis instance for the whole test — shared between all
+    # dependency overrides so all Redis calls see the same data.
     fake_redis = fakeredis.aioredis.FakeRedis()
+
     async def override_redis():
         return fake_redis
+
+    # Override the core redis_client module-level getter so agents.py graph
+    # endpoint (which calls get_redis() directly) also uses fakeredis.
+    original_pool = redis_module._redis_pool
+    redis_module._redis_pool = fake_redis
 
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[events.get_redis] = override_redis
@@ -59,6 +67,8 @@ async def client():
         yield c
 
     app.dependency_overrides.clear()
+    # Restore original Redis pool state
+    redis_module._redis_pool = original_pool
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
@@ -71,7 +81,7 @@ async def authed_client(client: AsyncClient):
         "password": "testpass123",
         "workspace_name": "Auto WS"
     })
-    assert r.status_code == 201, f"Registration failed: {r.text}"  # add assertion
+    assert r.status_code == 201, f"Registration failed: {r.text}"
     token = r.json()["access_token"]
     client.headers.update({"Authorization": f"Bearer {token}"})
     return client

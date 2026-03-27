@@ -1,64 +1,203 @@
-import type { Application } from 'pixi.js';
-import { IsoGrid } from './IsoGrid';
+import { Container, type Application } from 'pixi.js';
 import type { Agent } from '../../types/agent';
-import { worldToScreen } from '../../lib/isoMath';
-import { AgentSprite } from '../agents/AgentSprite';
+import { SpritePool } from '../agents/SpritePool';
+import { CameraController } from '../camera/CameraController';
+import { computeForceLayout, type LayoutNode } from '../layout/forceLayout';
+import { IsoGrid } from './IsoGrid';
+import { animateAgentMove, animateError, animateLevelUp, animateXPFloater } from '../animations/gsapAnimations';
 
-const GRID_COLS = 20;
-const GRID_ROWS = 20;
-const TILE_W = 64;
-const TILE_H = 32;
-
+/**
+ * WorldRenderer — manages the full PixiJS scene graph.
+ * Container hierarchy:
+ *   stage -> worldContainer -> [gridLayer, connectionLayer, agentLayer, effectsLayer]
+ *   stage -> uiLayer (HUD, not affected by pan/zoom)
+ */
 export class WorldRenderer {
   private app: Application;
+  private worldContainer: Container;
+  private gridLayer: Container;
+  private connectionLayer: Container;
+  private agentLayer: Container;
+  private effectsLayer: Container;
+  private uiLayer: Container;
+
+  private spritePool: SpritePool;
+  private camera: CameraController;
   private grid: IsoGrid;
-  private agentPositions: Map<string, { x: number; y: number }> = new Map();
-  private sprites: Map<string, AgentSprite> = new Map();
+
+  private layoutCache: Map<string, LayoutNode> = new Map();
+  private cameraDirty = true;
+  private agentClickHandler?: (agentId: string) => void;
+  private agentDblClickHandler?: (agentId: string) => void;
+  private _boundTick: () => void;
 
   constructor(app: Application) {
     this.app = app;
-    this.grid = new IsoGrid(GRID_COLS, GRID_ROWS);
+
+    // Build container hierarchy
+    this.worldContainer = new Container();
+    this.gridLayer = new Container();
+    this.connectionLayer = new Container();
+    this.agentLayer = new Container();
+    this.effectsLayer = new Container();
+    this.uiLayer = new Container();
+
+    this.worldContainer.addChild(
+      this.gridLayer,
+      this.connectionLayer,
+      this.agentLayer,
+      this.effectsLayer,
+    );
+    this.app.stage.addChild(this.worldContainer, this.uiLayer);
+
+    this.spritePool = new SpritePool(this.agentLayer);
+    this.grid = new IsoGrid(20, 20);
+
+    // Camera controller on the worldContainer
+    this.camera = new CameraController(
+      this.worldContainer,
+      this.app.canvas as HTMLCanvasElement,
+    );
+
+    // Ticker — store bound reference so it can be removed in destroy()
+    this._boundTick = this.tick.bind(this);
+    this.app.ticker.add(this._boundTick);
   }
 
-  init() {
-    const centerX = (this.app.screen.width ?? 800) / 2;
-    const centerY = (this.app.screen.height ?? 400) / 4;
-    this.grid.draw(centerX, centerY);
-    this.app.stage.addChild(this.grid.view);
+  init(): void {
+    const w = this.app.screen.width ?? 800;
+    const h = this.app.screen.height ?? 600;
+    this.grid.draw(w / 2, h / 4);
+    this.gridLayer.addChild(this.grid.view);
+
+    // Center worldContainer
+    this.worldContainer.x = w / 2;
+    this.worldContainer.y = h / 2;
   }
 
-  syncAgents(agents: Agent[]) {
-    agents.forEach((agent, idx) => {
-      const col = (idx % GRID_COLS) + 2;
-      const row = Math.floor(idx / GRID_COLS) * 2 + 3;
-      this.agentPositions.set(agent.id, { x: col, y: row });
+  syncAgents(agents: Agent[]): void {
+    if (agents.length === 0) {
+      this.spritePool.sync([]);
+      return;
+    }
 
-      let sprite = this.sprites.get(agent.id);
-      if (!sprite) {
-        sprite = new AgentSprite(agent);
-        this.sprites.set(agent.id, sprite);
-        this.app.stage.addChild(sprite.view);
-      } else {
-        sprite.updateStatus(agent.status);
+    const w = this.app.screen.width ?? 800;
+    const h = this.app.screen.height ?? 600;
+
+    // Compute layout for new agents only
+    const newAgents = agents.filter((a) => !this.layoutCache.has(a.id));
+    if (newAgents.length > 0) {
+      const allLayouts = computeForceLayout(agents, w, h);
+      for (const node of allLayouts) {
+        if (!this.layoutCache.has(node.id)) {
+          this.layoutCache.set(node.id, node);
+        }
       }
+    }
 
-      const screenPos = this.worldToScreenPos(col, row);
-      sprite.moveTo(screenPos.x, screenPos.y);
-    });
+    this.spritePool.sync(agents);
 
-    // Remove sprites for agents that no longer exist
-    const agentIds = new Set(agents.map((a) => a.id));
-    for (const [id, sprite] of this.sprites) {
-      if (!agentIds.has(id)) {
-        this.app.stage.removeChild(sprite.view);
-        this.sprites.delete(id);
+    // Position sprites using cached layout
+    for (const agent of agents) {
+      const layout = this.layoutCache.get(agent.id);
+      const sprite = this.spritePool.get(agent.id);
+      if (sprite && layout) {
+        // Use GSAP animation for smooth moves, direct set for initial placement
+        if (sprite.view.x === 0 && sprite.view.y === 0) {
+          sprite.moveTo(layout.x - w / 2, layout.y - h / 2);
+        } else {
+          animateAgentMove(sprite.view, layout.x - w / 2, layout.y - h / 2);
+        }
+      }
+    }
+
+    // Enable click handling
+    for (const agent of agents) {
+      const sprite = this.spritePool.get(agent.id);
+      if (sprite) {
+        sprite.view.eventMode = 'static';
+        sprite.view.cursor = 'pointer';
+        sprite.view.removeAllListeners();
+        sprite.view.on('pointerdown', () => this.agentClickHandler?.(agent.id));
+        sprite.view.on('pointertap', () => this.agentClickHandler?.(agent.id));
+        let dblTapTimer: ReturnType<typeof setTimeout> | null = null;
+        sprite.view.on('pointerdown', () => {
+          if (dblTapTimer) {
+            clearTimeout(dblTapTimer);
+            dblTapTimer = null;
+            this.agentDblClickHandler?.(agent.id);
+          } else {
+            dblTapTimer = setTimeout(() => { dblTapTimer = null; }, 300);
+          }
+        });
+      }
+    }
+
+    this.cameraDirty = true;
+  }
+
+  onAgentClick(handler: (agentId: string) => void): void {
+    this.agentClickHandler = handler;
+  }
+
+  onAgentDoubleClick(handler: (agentId: string) => void): void {
+    this.agentDblClickHandler = handler;
+  }
+
+  triggerXPFloat(agentId: string, xp: number): void {
+    const sprite = this.spritePool.get(agentId);
+    if (!sprite) return;
+    animateXPFloater(xp, sprite.view.x, sprite.view.y, this.effectsLayer);
+  }
+
+  triggerLevelUp(agentId: string, newLevel: number): void {
+    const sprite = this.spritePool.get(agentId);
+    if (!sprite) return;
+    animateLevelUp(sprite.view, sprite.levelRing, newLevel, this.effectsLayer);
+  }
+
+  triggerError(agentId: string): void {
+    const sprite = this.spritePool.get(agentId);
+    if (!sprite) return;
+    animateError(sprite.view);
+  }
+
+  private tick(): void {
+    // 1. Cull offscreen sprites (only if camera moved)
+    if (this.camera.dirty || this.cameraDirty) {
+      this.cullOffscreen();
+      this.camera.dirty = false;
+      this.cameraDirty = false;
+    }
+
+    // 2. Update dirty sprites
+    for (const sprite of this.spritePool.activeSprites()) {
+      if (sprite.dirty) {
+        sprite.render();
       }
     }
   }
 
-  worldToScreenPos(wx: number, wy: number): { x: number; y: number } {
-    const centerX = (this.app.screen.width ?? 800) / 2;
-    const centerY = (this.app.screen?.height ?? 400) / 4;
-    return worldToScreen(wx, wy, { tileW: TILE_W, tileH: TILE_H, originX: centerX, originY: centerY });
+  private cullOffscreen(): void {
+    const w = this.app.screen.width ?? 800;
+    const h = this.app.screen.height ?? 600;
+    const bounds = this.camera.getViewportBounds(w, h);
+    const margin = 100; // px margin to avoid pop-in
+
+    for (const sprite of this.spritePool.activeSprites()) {
+      const sx = sprite.view.x;
+      const sy = sprite.view.y;
+      sprite.view.visible =
+        sx >= bounds.left - margin &&
+        sx <= bounds.right + margin &&
+        sy >= bounds.top - margin &&
+        sy <= bounds.bottom + margin;
+    }
+  }
+
+  destroy(): void {
+    this.spritePool.releaseAll();
+    this.camera.destroy();
+    this.app.ticker.remove(this._boundTick);
   }
 }

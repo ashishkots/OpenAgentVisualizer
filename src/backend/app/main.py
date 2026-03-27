@@ -8,8 +8,27 @@ from app.core.database import engine, Base, AsyncSessionLocal
 from app.core.redis_client import get_redis, close_redis
 from app.core.security import hash_password
 from app.core.config import settings
-from app.models.user import User, Workspace, WorkspaceMember
-from app.routers import auth, agents, events, otlp_receiver, websocket as ws_router, sessions, metrics, alerts, gamification
+
+# Import all models so Base.metadata is populated before create_all
+from app.models.user import User, Workspace, WorkspaceMember  # noqa: F401
+from app.models.agent import Agent, Task  # noqa: F401
+from app.models.event import Event, Span, AgentSession  # noqa: F401
+from app.models.gamification import XPTransaction, Alert  # noqa: F401
+from app.models.metrics import MetricsRaw, MetricsAgg  # noqa: F401
+from app.models.audit import AuditLog  # noqa: F401
+from app.models.achievement import Achievement  # noqa: F401
+
+from app.routers import (
+    auth,
+    agents,
+    events,
+    otlp_receiver,
+    sessions,
+    metrics,
+    alerts,
+    gamification,
+)
+from app.routers import websocket as ws_router
 from app.routers.spans import router as spans_router
 
 
@@ -20,7 +39,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(lambda c: Base.metadata.create_all(c, checkfirst=True))
     # Warm up Redis pool (fixes race condition — single init here, not lazy)
     await get_redis()
-    # Seed default user
+    # Seed default user and workspace
     await seed_default_user()
     yield
     # Cleanup
@@ -42,11 +61,11 @@ async def seed_default_user() -> None:
         await db.commit()
 
 
-app = FastAPI(title="OpenAgentVisualizer API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="OpenAgentVisualizer API", version="2.0.0", lifespan=lifespan)
 
 
 @app.get("/api/health")
-async def health():
+async def health() -> dict:
     return {"status": "ok"}
 
 

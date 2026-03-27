@@ -15,7 +15,7 @@ export function LoginPage() {
       const { data } = await apiClient.post('/api/auth/login', { email, password });
       localStorage.setItem('oav_token', data.access_token);
       localStorage.setItem('oav_workspace', data.workspace_id);
-      navigate('/world');
+      navigate('/dashboard');
     } catch {
       setError('Invalid credentials');
     }
