@@ -19,6 +19,13 @@ import {
   Share2,
   BookOpen,
   Shield,
+  Swords,
+  Users,
+  Flame,
+  ScrollText,
+  Sparkles,
+  ShoppingBag,
+  Package,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { NotificationLayer } from '../gamification/NotificationLayer';
@@ -26,6 +33,7 @@ import { LoadingSpinner } from '../common/LoadingSpinner';
 import { BottomNav } from '../mobile/BottomNav';
 import { OfflineBanner } from '../ui/OfflineBanner';
 import { NotificationBell } from '../notifications/NotificationBell';
+import { WalletBadge } from '../gamification/WalletBadge';
 import { TourProvider } from '../onboarding/TourProvider';
 
 // Lazy load pages
@@ -43,8 +51,17 @@ const TraceExplorerPage = lazy(() => import('../../pages/TraceExplorerPage').the
 const MeshTopologyPage  = lazy(() => import('../../pages/MeshTopologyPage').then(m => ({ default: m.MeshTopologyPage })));
 const KnowledgeGraphPage = lazy(() => import('../../pages/KnowledgeGraphPage').then(m => ({ default: m.KnowledgeGraphPage })));
 const SecurityPage      = lazy(() => import('../../pages/SecurityPage').then(m => ({ default: m.SecurityPage })));
-const NotificationsPage = lazy(() => import('../../pages/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
-const InviteAcceptPage  = lazy(() => import('../../pages/InviteAcceptPage').then(m => ({ default: m.InviteAcceptPage })));
+const NotificationsPage  = lazy(() => import('../../pages/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const InviteAcceptPage   = lazy(() => import('../../pages/InviteAcceptPage').then(m => ({ default: m.InviteAcceptPage })));
+const TournamentsPage    = lazy(() => import('../../pages/TournamentsPage').then(m => ({ default: m.TournamentsPage })));
+const TeamsPage          = lazy(() => import('../../pages/TeamsPage').then(m => ({ default: m.TeamsPage })));
+const TeamDetailPage     = lazy(() => import('../../pages/TeamDetailPage').then(m => ({ default: m.TeamDetailPage })));
+const ChallengesPage     = lazy(() => import('../../pages/ChallengesPage').then(m => ({ default: m.ChallengesPage })));
+const QuestsPage         = lazy(() => import('../../pages/QuestsPage').then(m => ({ default: m.QuestsPage })));
+const SkillTreePage      = lazy(() => import('../../pages/SkillTreePage').then(m => ({ default: m.SkillTreePage })));
+const ShopPage           = lazy(() => import('../../pages/ShopPage').then(m => ({ default: m.ShopPage })));
+const InventoryPage      = lazy(() => import('../../pages/InventoryPage').then(m => ({ default: m.InventoryPage })));
+const WalletPage         = lazy(() => import('../../pages/WalletPage').then(m => ({ default: m.WalletPage })));
 
 const NAV_ITEMS = [
   { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard'  },
@@ -61,10 +78,20 @@ const INTEGRATION_ITEMS = [
 ] as const;
 
 const OTHER_NAV_ITEMS = [
-  { to: '/leaderboard', icon: Trophy,   label: 'Leaderboard' },
-  { to: '/analytics',   icon: BarChart2,label: 'Analytics'   },
-  { to: '/alerts',      icon: Bell,     label: 'Alerts'      },
-  { to: '/sessions',    icon: Play,     label: 'Sessions'    },
+  { to: '/leaderboard',  icon: Trophy,   label: 'Leaderboard'  },
+  { to: '/tournaments',  icon: Swords,   label: 'Tournaments'  },
+  { to: '/teams',        icon: Users,    label: 'Teams'        },
+  { to: '/challenges',   icon: Flame,    label: 'Challenges'   },
+  { to: '/analytics',    icon: BarChart2,label: 'Analytics'    },
+  { to: '/alerts',       icon: Bell,     label: 'Alerts'       },
+  { to: '/sessions',     icon: Play,     label: 'Sessions'     },
+] as const;
+
+const GAMIFICATION_ITEMS = [
+  { to: '/quests',    icon: ScrollText,  label: 'Quests'    },
+  { to: '/skills',    icon: Sparkles,    label: 'Skills'    },
+  { to: '/shop',      icon: ShoppingBag, label: 'Shop'      },
+  { to: '/inventory', icon: Package,     label: 'Inventory' },
 ] as const;
 
 function PageFallback() {
@@ -104,7 +131,11 @@ export function AppShell() {
   const isIntegrationsActive = INTEGRATION_ITEMS.some(
     (item) => location.pathname === item.to || location.pathname.startsWith(item.to + '/'),
   );
+  const isGamificationActive = GAMIFICATION_ITEMS.some(
+    (item) => location.pathname === item.to || location.pathname.startsWith(item.to + '/'),
+  );
   const [integrationsOpen, setIntegrationsOpen] = useState(isIntegrationsActive);
+  const [gamificationOpen, setGamificationOpen] = useState(isGamificationActive);
 
   const handleLogout = () => {
     localStorage.removeItem('oav_token');
@@ -203,6 +234,54 @@ export function AppShell() {
             )}
           </div>
 
+          {/* Gamification group */}
+          <div className="mt-1">
+            <button
+              onClick={() => setGamificationOpen((v) => !v)}
+              className={clsx(
+                'w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-sm transition-colors',
+                'min-h-[44px] focus-visible:ring-2 focus-visible:ring-oav-accent focus-visible:outline-none',
+                isGamificationActive
+                  ? 'text-oav-accent bg-oav-accent/10'
+                  : 'text-oav-muted hover:text-oav-text hover:bg-oav-surface-hover',
+              )}
+              aria-label="Gamification"
+              aria-expanded={gamificationOpen}
+            >
+              <Sparkles className="w-5 h-5 shrink-0" aria-hidden="true" />
+              {isExpanded && (
+                <>
+                  <span className="font-medium truncate flex-1 text-left">Gamification</span>
+                  <ChevronDown
+                    className={clsx(
+                      'w-4 h-4 shrink-0 transition-transform duration-200',
+                      gamificationOpen && 'rotate-180',
+                    )}
+                    aria-hidden="true"
+                  />
+                </>
+              )}
+            </button>
+
+            {/* Sub-items expanded */}
+            {isExpanded && gamificationOpen && (
+              <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-oav-border/50 pl-2">
+                {GAMIFICATION_ITEMS.map(({ to, icon, label }) => (
+                  <NavLink key={to} to={to} icon={icon} label={label} isExpanded={isExpanded} />
+                ))}
+              </div>
+            )}
+
+            {/* Collapsed: show individual icons */}
+            {!isExpanded && (
+              <div className="flex flex-col gap-0.5 mt-0.5">
+                {GAMIFICATION_ITEMS.map(({ to, icon, label }) => (
+                  <NavLink key={to} to={to} icon={icon} label={label} isExpanded={false} />
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Other nav */}
           {OTHER_NAV_ITEMS.map(({ to, icon, label }) => (
             <NavLink
@@ -250,7 +329,8 @@ export function AppShell() {
       {/* Main content */}
       <main className="flex-1 overflow-auto flex flex-col min-w-0 pb-14 md:pb-0">
         {/* Top header bar with notification bell */}
-        <header className="hidden md:flex items-center justify-end px-6 py-2 border-b border-oav-border bg-oav-surface/50 shrink-0 h-12">
+        <header className="hidden md:flex items-center justify-end gap-3 px-6 py-2 border-b border-oav-border bg-oav-surface/50 shrink-0 h-12">
+          <WalletBadge />
           <NotificationBell />
         </header>
 
@@ -273,6 +353,15 @@ export function AppShell() {
             <Route path="/settings"        element={<SettingsPage />} />
             <Route path="/notifications"   element={<NotificationsPage />} />
             <Route path="/invite/:token"   element={<InviteAcceptPage />} />
+            <Route path="/tournaments"     element={<TournamentsPage />} />
+            <Route path="/teams"           element={<TeamsPage />} />
+            <Route path="/teams/:id"       element={<TeamDetailPage />} />
+            <Route path="/challenges"      element={<ChallengesPage />} />
+            <Route path="/quests"          element={<QuestsPage />} />
+            <Route path="/skills"          element={<SkillTreePage />} />
+            <Route path="/shop"            element={<ShopPage />} />
+            <Route path="/inventory"       element={<InventoryPage />} />
+            <Route path="/wallet"          element={<WalletPage />} />
             <Route path="*"                element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
