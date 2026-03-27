@@ -5,7 +5,7 @@ import re
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -231,6 +231,7 @@ async def add_org_member(
 @router.delete(
     "/{org_id}/members/{user_id}",
     status_code=204,
+    response_class=Response,
     summary="Remove a member from the organization",
 )
 async def remove_org_member(
@@ -238,7 +239,7 @@ async def remove_org_member(
     user_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> None:
+):
     org = await db.get(Organization, org_id)
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")

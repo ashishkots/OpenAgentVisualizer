@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -163,6 +163,7 @@ async def list_shared_agents(
 @router.delete(
     "/api/v1/shared-agents/{share_id}",
     status_code=204,
+    response_class=Response,
     summary="Revoke agent sharing",
 )
 async def revoke_shared_agent(
@@ -170,7 +171,7 @@ async def revoke_shared_agent(
     current_user: User = Depends(get_current_user),
     current_workspace_id: str = Depends(get_workspace_id),
     db: AsyncSession = Depends(get_db),
-) -> None:
+):
     shared = await db.get(SharedAgent, share_id)
     if not shared:
         raise HTTPException(status_code=404, detail="Shared agent record not found")

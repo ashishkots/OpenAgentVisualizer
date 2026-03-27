@@ -7,7 +7,7 @@ Constraints:
 
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
@@ -154,13 +154,13 @@ async def add_team_member(
     return member
 
 
-@router.delete("/{team_id}/members/{agent_id}", status_code=204)
+@router.delete("/{team_id}/members/{agent_id}", status_code=204, response_class=Response)
 async def remove_team_member(
     team_id: str,
     agent_id: str,
     workspace_id: str = Depends(get_workspace_id),
     db: AsyncSession = Depends(get_db),
-) -> None:
+):
     """Remove an agent from a team."""
     team = await db.scalar(
         select(Team).where(
