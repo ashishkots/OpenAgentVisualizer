@@ -29,6 +29,7 @@ celery_app = Celery(
         "app.tasks.achievements",
         "app.tasks.integrations",
         "app.tasks.notifications",
+        "app.tasks.activity",
     ],
 )
 
@@ -63,6 +64,8 @@ celery_app.conf.update(
         "app.tasks.refresh_leaderboard": {"queue": QUEUE_DEFAULT},
         "app.tasks.sync_integrations_all": {"queue": QUEUE_BULK},
         "app.tasks.apply_xp_decay": {"queue": QUEUE_BULK},
+        "app.tasks.notifications.*": {"queue": QUEUE_CRITICAL},
+        "app.tasks.activity.*": {"queue": QUEUE_BULK},
     },
     beat_schedule={
         # Refresh the agent leaderboard materialized view every 5 minutes
@@ -79,6 +82,11 @@ celery_app.conf.update(
         "apply-xp-decay": {
             "task": "app.tasks.apply_xp_decay",
             "schedule": 86400.0,  # seconds (24 hours; use crontab for exact time in prod)
+        },
+        # Prune activity feed entries older than 90 days (runs daily)
+        "prune-activity": {
+            "task": "app.tasks.activity.prune_activity",
+            "schedule": 86400.0,
         },
     },
 )
