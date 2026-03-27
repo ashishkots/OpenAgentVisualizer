@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[Hook] File modified — remember to run tests and linter before committing.'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before stopping, verify: 1) All files are saved, 2) Tests pass, 3) No uncommitted changes that should be committed, 4) Sprint backlog is updated. Respond with ok if all clear."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"Session started at $(date). Current branch: $(git branch --show-current 2>/dev/null || echo 'not a git repo'). Last commit: $(git log --oneline -1 2>/dev/null || echo 'none')\""
+          }
+        ]
+      }
+    ]
+  }
+}
