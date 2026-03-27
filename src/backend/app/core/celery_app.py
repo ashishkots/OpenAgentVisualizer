@@ -30,6 +30,10 @@ celery_app = Celery(
         "app.tasks.integrations",
         "app.tasks.notifications",
         "app.tasks.activity",
+        "app.tasks.quests",
+        "app.tasks.tournaments",
+        "app.tasks.seasons",
+        "app.tasks.challenges",
     ],
 )
 
@@ -66,6 +70,13 @@ celery_app.conf.update(
         "app.tasks.apply_xp_decay": {"queue": QUEUE_BULK},
         "app.tasks.notifications.*": {"queue": QUEUE_CRITICAL},
         "app.tasks.activity.*": {"queue": QUEUE_BULK},
+        "app.tasks.quests.evaluate_quest_progress": {"queue": QUEUE_CRITICAL},
+        "app.tasks.quests.reset_daily_quests": {"queue": QUEUE_DEFAULT},
+        "app.tasks.quests.reset_weekly_quests": {"queue": QUEUE_DEFAULT},
+        "app.tasks.tournaments.*": {"queue": QUEUE_DEFAULT},
+        "app.tasks.seasons.*": {"queue": QUEUE_DEFAULT},
+        "app.tasks.challenges.update_challenge_progress": {"queue": QUEUE_DEFAULT},
+        "app.tasks.challenges.create_weekly_challenges": {"queue": QUEUE_BULK},
     },
     beat_schedule={
         # Refresh the agent leaderboard materialized view every 5 minutes

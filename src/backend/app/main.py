@@ -53,6 +53,14 @@ from app.routers import notifications as notifications_router
 from app.routers import export as export_router
 from app.routers import invites as invites_router
 from app.routers import activity as activity_router
+from app.routers import tournaments as tournaments_router
+from app.routers import seasons as seasons_router
+from app.routers import teams as teams_router
+from app.routers import challenges as challenges_router
+from app.routers import quests as quests_router
+from app.routers import skills as skills_router
+from app.routers import wallet as wallet_router
+from app.routers import shop as shop_router
 from app.services.websocket_manager import manager as ws_manager
 from app.core.logging import get_logger
 
@@ -232,3 +240,11 @@ app.include_router(notifications_router.router)
 app.include_router(export_router.router)
 app.include_router(invites_router.router)
 app.include_router(activity_router.router)
+app.include_router(tournaments_router.router)
+app.include_router(seasons_router.router)
+app.include_router(teams_router.router)
+app.include_router(challenges_router.router)
+app.include_router(quests_router.router)
+app.include_router(skills_router.router)
+app.include_router(wallet_router.router)
+app.include_router(shop_router.router)
