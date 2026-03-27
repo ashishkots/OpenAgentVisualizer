@@ -35,6 +35,7 @@ import { OfflineBanner } from '../ui/OfflineBanner';
 import { NotificationBell } from '../notifications/NotificationBell';
 import { WalletBadge } from '../gamification/WalletBadge';
 import { TourProvider } from '../onboarding/TourProvider';
+import { OrgSwitcher } from '../platform/OrgSwitcher';
 
 // Lazy load pages
 const DashboardPage    = lazy(() => import('../../pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
@@ -62,6 +63,9 @@ const SkillTreePage      = lazy(() => import('../../pages/SkillTreePage').then(m
 const ShopPage           = lazy(() => import('../../pages/ShopPage').then(m => ({ default: m.ShopPage })));
 const InventoryPage      = lazy(() => import('../../pages/InventoryPage').then(m => ({ default: m.InventoryPage })));
 const WalletPage         = lazy(() => import('../../pages/WalletPage').then(m => ({ default: m.WalletPage })));
+const OrgSettingsPage    = lazy(() => import('../../pages/OrgSettingsPage').then(m => ({ default: m.OrgSettingsPage })));
+const OrgAnalyticsPage   = lazy(() => import('../../pages/OrgAnalyticsPage').then(m => ({ default: m.OrgAnalyticsPage })));
+const SharedAgentsPage   = lazy(() => import('../../pages/SharedAgentsPage').then(m => ({ default: m.SharedAgentsPage })));
 
 const NAV_ITEMS = [
   { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard'  },
@@ -330,6 +334,7 @@ export function AppShell() {
       <main className="flex-1 overflow-auto flex flex-col min-w-0 pb-14 md:pb-0">
         {/* Top header bar with notification bell */}
         <header className="hidden md:flex items-center justify-end gap-3 px-6 py-2 border-b border-oav-border bg-oav-surface/50 shrink-0 h-12">
+          <OrgSwitcher />
           <WalletBadge />
           <NotificationBell />
         </header>
@@ -362,6 +367,9 @@ export function AppShell() {
             <Route path="/shop"            element={<ShopPage />} />
             <Route path="/inventory"       element={<InventoryPage />} />
             <Route path="/wallet"          element={<WalletPage />} />
+            <Route path="/org/settings"    element={<OrgSettingsPage />} />
+            <Route path="/org/analytics"   element={<OrgAnalyticsPage />} />
+            <Route path="/shared-agents"   element={<SharedAgentsPage />} />
             <Route path="*"                element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
