@@ -4,7 +4,8 @@ import { AlertCircle, AlertTriangle, Info, CheckCircle } from 'lucide-react';
 import { useAlerts, useResolveAlert } from '../hooks/useAlerts';
 import { Breadcrumb } from '../components/ui/Breadcrumb';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { EmptyState } from '../components/common/EmptyState';
+import { EmptyState } from '../components/ui/EmptyState';
+import { ExportButton } from '../components/export/ExportButton';
 import { clsx } from 'clsx';
 import { formatDistanceToNow } from 'date-fns';
 import type { AlertType } from '../types/gamification';
@@ -80,7 +81,14 @@ export function AlertsPage() {
   return (
     <div className="p-6 space-y-4 pb-20 md:pb-6">
       <Breadcrumb items={BREADCRUMB} />
-      <h1 className="text-xl font-bold text-oav-text">Alerts</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-oav-text">Alerts</h1>
+        <ExportButton
+          endpoint="/api/export/events"
+          filename="alerts-export"
+          hasDateRange={true}
+        />
+      </div>
 
       {/* Critical banner */}
       {criticalAlerts.length > 0 && (
@@ -148,7 +156,13 @@ export function AlertsPage() {
 
       {/* Alert list */}
       {filtered.length === 0 ? (
-        <EmptyState message="No alerts match your filters" />
+        <EmptyState
+          icon={AlertCircle}
+          title="No alerts"
+          description="No alerts match your current filters. All systems are running smoothly."
+          actionLabel="Clear filters"
+          onAction={() => setSearchParams({})}
+        />
       ) : (
         <div className="bg-oav-surface border border-oav-border rounded-xl overflow-hidden">
           {filtered.map((alert) => {

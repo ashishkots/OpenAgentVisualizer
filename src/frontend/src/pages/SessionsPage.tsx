@@ -7,13 +7,15 @@ import {
   SkipBack,
   ChevronDown,
   ChevronRight,
+  Video,
 } from 'lucide-react';
 import { getSessions } from '../services/sessionApi';
 import { useSessionReplay } from '../hooks/useSessionReplay';
 import { useSessionStore } from '../stores/sessionStore';
 import { Breadcrumb } from '../components/ui/Breadcrumb';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { EmptyState } from '../components/common/EmptyState';
+import { EmptyState as LegacyEmptyState } from '../components/common/EmptyState';
+import { EmptyState } from '../components/ui/EmptyState';
 import { clsx } from 'clsx';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -101,7 +103,13 @@ export function SessionsPage() {
           {sessionsLoading ? (
             <div className="flex justify-center py-8"><LoadingSpinner /></div>
           ) : sessions.length === 0 ? (
-            <EmptyState message="No sessions yet" />
+            <EmptyState
+              icon={Video}
+              title="No sessions yet"
+              description="Sessions are recorded when agents run tasks. Start an agent to see sessions here."
+              actionLabel="View agents"
+              onAction={() => {/* navigate handled via link */}}
+            />
           ) : (
             sessions.map((session) => {
               const isActive = session.id === activeSessionId;
@@ -140,7 +148,7 @@ export function SessionsPage() {
         <div className="flex-1 overflow-y-auto flex flex-col">
           {!activeSessionId ? (
             <div className="flex-1 flex items-center justify-center">
-              <EmptyState message="Select a session to view details" />
+              <LegacyEmptyState message="Select a session to view details" />
             </div>
           ) : replayLoading ? (
             <div className="flex-1 flex items-center justify-center">
@@ -215,7 +223,7 @@ export function SessionsPage() {
               {/* Event timeline */}
               <div className="flex-1 overflow-y-auto p-4">
                 {events.length === 0 ? (
-                  <EmptyState message="No events in this session" />
+                  <LegacyEmptyState message="No events in this session" />
                 ) : (
                   <div className="space-y-0">
                     {events.map((ev, i) => {

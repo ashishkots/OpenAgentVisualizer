@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, TrendingDown, Minus, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, ArrowRight, Bot, Activity } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -17,10 +18,13 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useAgentStore } from '../stores/agentStore';
 import { AgentCard } from '../components/agents/AgentCard';
 import { AgentAvatar } from '../components/ui/AgentAvatar';
-import { XPBar } from '../components/ui/XPBar';
 import { Breadcrumb } from '../components/ui/Breadcrumb';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { EmptyState } from '../components/common/EmptyState';
+import { EmptyState as LegacyEmptyState } from '../components/common/EmptyState';
+import { EmptyState } from '../components/ui/EmptyState';
+import { OnboardingWizard } from '../components/onboarding/OnboardingWizard';
+import { ActivityFeed } from '../components/collaboration/ActivityFeed';
+import { useTour } from '../components/onboarding/TourProvider';
 import { formatCost } from '../lib/formatters';
 import { xpProgress } from '../lib/xpLevels';
 import { clsx } from 'clsx';
@@ -69,6 +73,8 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const workspaceId = localStorage.getItem('oav_workspace') ?? '';
   useWebSocket(workspaceId || null);
+  const { startTour } = useTour();
+  const [activityOpen, setActivityOpen] = useState(false);
 
   const { data: agentsFromApi, isLoading: agentsLoading } = useAgents();
   const { data: costs } = useCosts();
@@ -114,8 +120,24 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 pb-20 md:pb-6">
-      <Breadcrumb items={BREADCRUMB} className="mb-1" />
+    <>
+    {/* Onboarding: show wizard when no agents exist */}
+    {agents.length === 0 && <OnboardingWizard onComplete={startTour} />}
+
+    <div className="flex h-full relative">
+    <div className="flex-1 p-6 space-y-6 pb-20 md:pb-6 overflow-auto">
+      <div className="flex items-center justify-between">
+        <Breadcrumb items={BREADCRUMB} className="mb-1" />
+        <button
+          onClick={() => setActivityOpen((v) => !v)}
+          className="flex items-center gap-2 text-xs text-oav-muted hover:text-oav-text border border-oav-border rounded-lg px-3 py-1.5 transition-colors"
+          aria-label={activityOpen ? 'Hide activity feed' : 'Show activity feed'}
+          aria-expanded={activityOpen}
+        >
+          <Activity className="w-3.5 h-3.5" aria-hidden="true" />
+          {activityOpen ? 'Hide Activity' : 'Activity'}
+        </button>
+      </div>
       <h1 className="text-xl font-bold text-oav-text">Dashboard</h1>
 
       {/* Summary Stats Row */}
@@ -141,12 +163,18 @@ export function DashboardPage() {
       </div>
 
       {/* Agent Grid */}
-      <section aria-labelledby="agents-heading">
+      <section aria-labelledby="agents-heading" data-tour="agent-grid">
         <h2 id="agents-heading" className="text-lg font-semibold text-oav-text mb-4">
           Agents
         </h2>
         {agents.length === 0 ? (
-          <EmptyState message="No agents registered yet" />
+          <EmptyState
+            icon={Bot}
+            title="No agents yet"
+            description="Connect your first AI agent to start visualizing its activity in real time."
+            actionLabel="Learn how to connect"
+            onAction={() => navigate('/settings?tab=keys')}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {agents.map((agent) => (
@@ -207,7 +235,7 @@ export function DashboardPage() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <EmptyState message="No token data" />
+              <LegacyEmptyState message="No token data" />
             )}
           </div>
         </div>
@@ -226,7 +254,7 @@ export function DashboardPage() {
           </div>
           <div className="space-y-3">
             {topAgents.length === 0 ? (
-              <EmptyState message="No agents yet" />
+              <LegacyEmptyState message="No agents yet" />
             ) : (
               topAgents.map((agent, i) => {
                 const { level, name: levelName } = xpProgress(agent.xp_total);
@@ -258,5 +286,12 @@ export function DashboardPage() {
         </div>
       </div>
     </div>
+
+    {/* Activity feed sidebar */}
+    {activityOpen && (
+      <ActivityFeed onClose={() => setActivityOpen(false)} />
+    )}
+    </div>
+    </>
   );
 }

@@ -25,6 +25,8 @@ import { NotificationLayer } from '../gamification/NotificationLayer';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { BottomNav } from '../mobile/BottomNav';
 import { OfflineBanner } from '../ui/OfflineBanner';
+import { NotificationBell } from '../notifications/NotificationBell';
+import { TourProvider } from '../onboarding/TourProvider';
 
 // Lazy load pages
 const DashboardPage    = lazy(() => import('../../pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
@@ -41,6 +43,8 @@ const TraceExplorerPage = lazy(() => import('../../pages/TraceExplorerPage').the
 const MeshTopologyPage  = lazy(() => import('../../pages/MeshTopologyPage').then(m => ({ default: m.MeshTopologyPage })));
 const KnowledgeGraphPage = lazy(() => import('../../pages/KnowledgeGraphPage').then(m => ({ default: m.KnowledgeGraphPage })));
 const SecurityPage      = lazy(() => import('../../pages/SecurityPage').then(m => ({ default: m.SecurityPage })));
+const NotificationsPage = lazy(() => import('../../pages/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const InviteAcceptPage  = lazy(() => import('../../pages/InviteAcceptPage').then(m => ({ default: m.InviteAcceptPage })));
 
 const NAV_ITEMS = [
   { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard'  },
@@ -71,12 +75,13 @@ function PageFallback() {
   );
 }
 
-function NavLink({ to, icon: Icon, label, isExpanded }: { to: string; icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>; label: string; isExpanded: boolean }) {
+function NavLink({ to, icon: Icon, label, isExpanded, dataTour }: { to: string; icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>; label: string; isExpanded: boolean; dataTour?: string }) {
   const location = useLocation();
   const active = location.pathname === to || location.pathname.startsWith(to + '/');
   return (
     <Link
       to={to}
+      data-tour={dataTour}
       className={clsx(
         'flex items-center gap-3 px-2 py-2.5 rounded-lg text-sm transition-colors',
         'min-h-[44px] focus-visible:ring-2 focus-visible:ring-oav-accent focus-visible:outline-none',
@@ -108,9 +113,11 @@ export function AppShell() {
   };
 
   return (
+    <TourProvider>
     <div className="flex h-screen bg-oav-bg overflow-hidden">
       {/* Desktop Sidebar */}
       <nav
+        data-tour="sidebar-nav"
         className={clsx(
           'hidden md:flex flex-col bg-oav-surface border-r border-oav-border py-4 z-40',
           'transition-all duration-200 ease-in-out shrink-0',
@@ -198,13 +205,25 @@ export function AppShell() {
 
           {/* Other nav */}
           {OTHER_NAV_ITEMS.map(({ to, icon, label }) => (
-            <NavLink key={to} to={to} icon={icon} label={label} isExpanded={isExpanded} />
+            <NavLink
+              key={to}
+              to={to}
+              icon={icon}
+              label={label}
+              isExpanded={isExpanded}
+              dataTour={
+                to === '/leaderboard' ? 'leaderboard-nav'
+                : to === '/alerts' ? 'alerts-nav'
+                : undefined
+              }
+            />
           ))}
         </div>
 
         {/* Bottom: settings + logout */}
         <div className="px-2 flex flex-col gap-1">
           <Link
+            data-tour="settings-nav"
             to="/settings"
             className={clsx(
               'flex items-center gap-3 px-2 py-2.5 rounded-lg text-sm transition-colors min-h-[44px]',
@@ -230,24 +249,31 @@ export function AppShell() {
 
       {/* Main content */}
       <main className="flex-1 overflow-auto flex flex-col min-w-0 pb-14 md:pb-0">
+        {/* Top header bar with notification bell */}
+        <header className="hidden md:flex items-center justify-end px-6 py-2 border-b border-oav-border bg-oav-surface/50 shrink-0 h-12">
+          <NotificationBell />
+        </header>
+
         <Suspense fallback={<PageFallback />}>
           <Routes>
-            <Route path="/dashboard"     element={<DashboardPage />} />
-            <Route path="/world"         element={<VirtualWorldPage />} />
-            <Route path="/world3d"       element={<World3DPage />} />
-            <Route path="/topology"      element={<TopologyPage />} />
-            <Route path="/traces"        element={<TraceExplorerPage />} />
-            <Route path="/mesh"          element={<MeshTopologyPage />} />
-            <Route path="/knowledge"     element={<KnowledgeGraphPage />} />
-            <Route path="/security"      element={<SecurityPage />} />
-            <Route path="/leaderboard"   element={<LeaderboardPage />} />
-            <Route path="/analytics"     element={<AnalyticsPage />} />
-            <Route path="/alerts"        element={<AlertsPage />} />
-            <Route path="/sessions"      element={<SessionsPage />} />
-            <Route path="/sessions/:id"  element={<SessionsPage />} />
-            <Route path="/agents/:id"    element={<AgentDetailPage />} />
-            <Route path="/settings"      element={<SettingsPage />} />
-            <Route path="*"              element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard"       element={<DashboardPage />} />
+            <Route path="/world"           element={<VirtualWorldPage />} />
+            <Route path="/world3d"         element={<World3DPage />} />
+            <Route path="/topology"        element={<TopologyPage />} />
+            <Route path="/traces"          element={<TraceExplorerPage />} />
+            <Route path="/mesh"            element={<MeshTopologyPage />} />
+            <Route path="/knowledge"       element={<KnowledgeGraphPage />} />
+            <Route path="/security"        element={<SecurityPage />} />
+            <Route path="/leaderboard"     element={<LeaderboardPage />} />
+            <Route path="/analytics"       element={<AnalyticsPage />} />
+            <Route path="/alerts"          element={<AlertsPage />} />
+            <Route path="/sessions"        element={<SessionsPage />} />
+            <Route path="/sessions/:id"    element={<SessionsPage />} />
+            <Route path="/agents/:id"      element={<AgentDetailPage />} />
+            <Route path="/settings"        element={<SettingsPage />} />
+            <Route path="/notifications"   element={<NotificationsPage />} />
+            <Route path="/invite/:token"   element={<InviteAcceptPage />} />
+            <Route path="*"                element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
       </main>
@@ -261,5 +287,6 @@ export function AppShell() {
       {/* PWA offline status banner */}
       <OfflineBanner />
     </div>
+    </TourProvider>
   );
 }
