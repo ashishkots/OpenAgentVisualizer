@@ -7,19 +7,21 @@ import { Breadcrumb } from '../components/ui/Breadcrumb';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { IntegrationConfigCard } from '../components/settings/IntegrationConfigCard';
 import { MemberList } from '../components/collaboration/MemberList';
+import { SSOConfigForm } from '../components/platform/SSOConfigForm';
 import { useIntegrations } from '../hooks/useIntegrations';
 import { clsx } from 'clsx';
 import type { IntegrationType } from '../types/integration';
 
 const BREADCRUMB = [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings' }];
 
-type SettingsTab = 'workspace' | 'keys' | 'integrations' | 'members';
+type SettingsTab = 'workspace' | 'keys' | 'integrations' | 'members' | 'sso';
 
 const TABS: { value: SettingsTab; label: string }[] = [
   { value: 'workspace', label: 'Workspace' },
   { value: 'keys', label: 'API Keys' },
   { value: 'integrations', label: 'Integrations' },
   { value: 'members', label: 'Members' },
+  { value: 'sso', label: 'SSO' },
 ];
 
 const INTEGRATION_PRODUCTS: IntegrationType[] = ['opentrace', 'openmesh', 'openmind', 'openshield'];
@@ -318,6 +320,18 @@ export function SettingsPage() {
         <section aria-labelledby="members-heading">
           <h2 id="members-heading" className="sr-only">Members</h2>
           <MemberList />
+        </section>
+      )}
+
+      {/* SSO tab */}
+      {activeTab === 'sso' && (
+        <section aria-labelledby="sso-heading">
+          <h2 id="sso-heading" className="text-lg font-semibold text-oav-text mb-4">
+            Single Sign-On (SSO)
+          </h2>
+          <div className="bg-oav-surface border border-oav-border rounded-xl p-5">
+            <SSOConfigForm />
+          </div>
         </section>
       )}
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { LoginPage } from '../LoginPage';
 
@@ -19,5 +19,25 @@ describe('LoginPage', () => {
   it('submit button is present', () => {
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
     expect(screen.getByRole('button', { name: /sign in/i })).toBeTruthy();
+  });
+
+  it('renders "Sign in with SSO" button', () => {
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    expect(screen.getByRole('button', { name: /sign in with sso/i })).toBeTruthy();
+  });
+
+  it('shows workspace slug input after clicking SSO button', () => {
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: /sign in with sso/i }));
+    expect(screen.getByLabelText(/workspace slug/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /continue with sso/i })).toBeTruthy();
+  });
+
+  it('can navigate back from SSO form to credentials', () => {
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: /sign in with sso/i }));
+    expect(screen.getByLabelText(/workspace slug/i)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /back to email sign in/i }));
+    expect(screen.getByPlaceholderText(/email/i)).toBeTruthy();
   });
 });
