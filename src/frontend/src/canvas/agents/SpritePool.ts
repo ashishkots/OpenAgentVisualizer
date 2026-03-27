@@ -6,13 +6,13 @@ import { killSpriteTweens } from '../animations/gsapAnimations';
 /**
  * SpritePool — manages creation and recycling of AgentSprite instances.
  * Avoids GC pressure from repeated Graphics/Text construction.
- * Pool capacity: 200 max (workspace max per architecture spec).
+ * Pool capacity: 600 max (scaled for 500-agent workspace per Sprint 4 spec).
  */
 export class SpritePool {
   private pool: AgentSprite[] = [];
   private active: Map<string, AgentSprite> = new Map();
   private readonly agentLayer: Container;
-  private readonly MAX_POOL_SIZE = 200;
+  private readonly MAX_POOL_SIZE = 600;
 
   constructor(agentLayer: Container) {
     this.agentLayer = agentLayer;

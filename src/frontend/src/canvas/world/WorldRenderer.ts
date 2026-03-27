@@ -170,11 +170,52 @@ export class WorldRenderer {
       this.cameraDirty = false;
     }
 
-    // 2. Update dirty sprites
+    // 2. Update LOD based on current zoom level and visible sprite count
+    this.updateLevelOfDetail();
+
+    // 3. Update dirty sprites
     for (const sprite of this.spritePool.activeSprites()) {
       if (sprite.dirty) {
         sprite.render();
       }
+    }
+  }
+
+  /**
+   * Returns the number of currently visible (non-culled) sprites.
+   */
+  getVisibleSpriteCount(): number {
+    let count = 0;
+    for (const sprite of this.spritePool.activeSprites()) {
+      if (sprite.view.visible) count++;
+    }
+    return count;
+  }
+
+  /**
+   * Applies level-of-detail to all active sprites based on camera zoom and
+   * visible sprite count.
+   *
+   * LOD levels:
+   * - dot    (zoom < 0.2):                        scale 0.3, body only
+   * - simple (zoom 0.2–0.5 OR >100 visible):      scale 0.6, circle only
+   * - full   (zoom > 0.5 AND ≤100 visible):        scale 1.0, everything
+   */
+  private updateLevelOfDetail(): void {
+    const zoom = this.camera.scale;
+    const visibleCount = this.getVisibleSpriteCount();
+
+    let lod: 'full' | 'simple' | 'dot';
+    if (zoom < 0.2) {
+      lod = 'dot';
+    } else if (zoom <= 0.5 || visibleCount > 100) {
+      lod = 'simple';
+    } else {
+      lod = 'full';
+    }
+
+    for (const sprite of this.spritePool.activeSprites()) {
+      sprite.setLOD(lod);
     }
   }
 

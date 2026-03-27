@@ -142,6 +142,46 @@ export class AgentSprite {
     this.view.y = y;
   }
 
+  /**
+   * Set level-of-detail for this sprite.
+   *
+   * - 'full': all elements visible, scale 1.0 (default, close zoom)
+   * - 'simple': body + levelRing + statusDot only, scale 0.6 (medium zoom or >100 visible)
+   * - 'dot': body only, scale 0.3 (far zoom < 0.2)
+   */
+  setLOD(level: 'full' | 'simple' | 'dot'): void {
+    switch (level) {
+      case 'dot':
+        this.nameLabel.visible = false;
+        this.levelLabel.visible = false;
+        this.levelRing.visible = false;
+        this.statusDot.visible = false;
+        this.xpBar.visible = false;
+        this.badgeRow.visible = false;
+        this.view.scale.set(0.3);
+        break;
+      case 'simple':
+        this.nameLabel.visible = false;
+        this.levelLabel.visible = false;
+        this.levelRing.visible = true;
+        this.statusDot.visible = true;
+        this.xpBar.visible = false;
+        this.badgeRow.visible = false;
+        this.view.scale.set(0.6);
+        break;
+      case 'full':
+      default:
+        this.nameLabel.visible = true;
+        this.levelLabel.visible = true;
+        this.levelRing.visible = true;
+        this.statusDot.visible = true;
+        this.xpBar.visible = true;
+        this.badgeRow.visible = true;
+        this.view.scale.set(1.0);
+        break;
+    }
+  }
+
   private drawBody(): void {
     this.body.clear();
     // Diamond shape (isometric agent avatar)
