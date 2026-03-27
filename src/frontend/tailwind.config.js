@@ -123,6 +123,19 @@ export default {
           '50%':  { filter: 'brightness(1.3)' },
           '100%': { filter: 'brightness(1.15)' },
         },
+        // Sprint 5 keyframes
+        'bottom-sheet-in': {
+          from: { transform: 'translateY(100%)' },
+          to:   { transform: 'translateY(0)' },
+        },
+        'bottom-sheet-out': {
+          from: { transform: 'translateY(0)' },
+          to:   { transform: 'translateY(100%)' },
+        },
+        'offline-banner-in': {
+          from: { transform: 'translateY(-100%)', opacity: '0' },
+          to:   { transform: 'translateY(0)', opacity: '1' },
+        },
       },
       animation: {
         // Sprint 2 animations
@@ -148,6 +161,10 @@ export default {
         'grade-pop':      'grade-pop 400ms ease-in-out',
         'waterfall-expand':'waterfall-expand 200ms ease-out forwards',
         'knowledge-highlight':'knowledge-highlight 500ms ease-in-out forwards',
+        // Sprint 5 animations
+        'bottom-sheet-in':   'bottom-sheet-in 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards',
+        'bottom-sheet-out':  'bottom-sheet-out 0.25s ease-in forwards',
+        'offline-banner-in': 'offline-banner-in 0.3s ease-out forwards',
       },
       zIndex: {
         '44': '44',

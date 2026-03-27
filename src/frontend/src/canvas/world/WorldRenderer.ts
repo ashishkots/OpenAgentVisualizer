@@ -29,6 +29,7 @@ export class WorldRenderer {
   private cameraDirty = true;
   private agentClickHandler?: (agentId: string) => void;
   private agentDblClickHandler?: (agentId: string) => void;
+  private agentLongPressHandler?: (agentId: string) => void;
   private _boundTick: () => void;
 
   constructor(app: Application) {
@@ -118,8 +119,49 @@ export class WorldRenderer {
         sprite.view.eventMode = 'static';
         sprite.view.cursor = 'pointer';
         sprite.view.removeAllListeners();
-        sprite.view.on('pointerdown', () => this.agentClickHandler?.(agent.id));
-        sprite.view.on('pointertap', () => this.agentClickHandler?.(agent.id));
+
+        // Long-press state (500 ms threshold)
+        let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+        let longPressTriggered = false;
+
+        const clearLongPress = () => {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        };
+
+        sprite.view.on('pointerdown', () => {
+          longPressTriggered = false;
+          clearLongPress();
+          longPressTimer = setTimeout(() => {
+            longPressTriggered = true;
+            longPressTimer = null;
+            this.agentLongPressHandler?.(agent.id);
+          }, 500);
+        });
+
+        sprite.view.on('pointermove', () => {
+          // Cancel long-press if the pointer moves during hold
+          clearLongPress();
+        });
+
+        sprite.view.on('pointerup', () => {
+          clearLongPress();
+        });
+
+        sprite.view.on('pointercancel', () => {
+          clearLongPress();
+        });
+
+        // Single tap / click — fire only if long-press did not trigger
+        sprite.view.on('pointertap', () => {
+          if (!longPressTriggered) {
+            this.agentClickHandler?.(agent.id);
+          }
+        });
+
+        // Double-tap detection
         let dblTapTimer: ReturnType<typeof setTimeout> | null = null;
         sprite.view.on('pointerdown', () => {
           if (dblTapTimer) {
@@ -142,6 +184,14 @@ export class WorldRenderer {
 
   onAgentDoubleClick(handler: (agentId: string) => void): void {
     this.agentDblClickHandler = handler;
+  }
+
+  /**
+   * Registers a callback fired after a 500 ms long-press on an agent sprite.
+   * Useful for showing context menus or agent detail navigation on touch devices.
+   */
+  onAgentLongPress(handler: (agentId: string) => void): void {
+    this.agentLongPressHandler = handler;
   }
 
   triggerXPFloat(agentId: string, xp: number): void {

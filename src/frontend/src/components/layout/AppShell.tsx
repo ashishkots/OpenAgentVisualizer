@@ -23,6 +23,8 @@ import {
 import { clsx } from 'clsx';
 import { NotificationLayer } from '../gamification/NotificationLayer';
 import { LoadingSpinner } from '../common/LoadingSpinner';
+import { BottomNav } from '../mobile/BottomNav';
+import { OfflineBanner } from '../ui/OfflineBanner';
 
 // Lazy load pages
 const DashboardPage    = lazy(() => import('../../pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
@@ -52,14 +54,6 @@ const INTEGRATION_ITEMS = [
   { to: '/mesh',      icon: Share2,    label: 'Mesh'      },
   { to: '/knowledge', icon: BookOpen,  label: 'Knowledge' },
   { to: '/security',  icon: Shield,    label: 'Security'  },
-] as const;
-
-const BOTTOM_NAV_ITEMS = [
-  { to: '/dashboard',   icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/world',       icon: Globe,           label: 'World'     },
-  { to: '/topology',    icon: Network,         label: 'Topology'  },
-  { to: '/leaderboard', icon: Trophy,          label: 'Board'     },
-  { to: '/alerts',      icon: Bell,            label: 'Alerts'    },
 ] as const;
 
 const OTHER_NAV_ITEMS = [
@@ -235,7 +229,7 @@ export function AppShell() {
       </nav>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto flex flex-col min-w-0">
+      <main className="flex-1 overflow-auto flex flex-col min-w-0 pb-14 md:pb-0">
         <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/dashboard"     element={<DashboardPage />} />
@@ -258,33 +252,14 @@ export function AppShell() {
         </Suspense>
       </main>
 
-      {/* Mobile bottom tab bar */}
-      <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-oav-surface border-t border-oav-border flex items-center z-40"
-        aria-label="Mobile navigation"
-      >
-        {BOTTOM_NAV_ITEMS.map(({ to, icon: Icon, label }) => {
-          const active = location.pathname === to || location.pathname.startsWith(to + '/');
-          return (
-            <Link
-              key={to}
-              to={to}
-              className={clsx(
-                'flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-colors min-h-[44px]',
-                active ? 'text-oav-accent' : 'text-oav-muted',
-              )}
-              aria-current={active ? 'page' : undefined}
-              aria-label={label}
-            >
-              <Icon className="w-5 h-5" aria-hidden="true" />
-              <span>{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      {/* Mobile bottom navigation */}
+      <BottomNav />
 
       {/* Gamification notification toasts */}
       <NotificationLayer />
+
+      {/* PWA offline status banner */}
+      <OfflineBanner />
     </div>
   );
 }
