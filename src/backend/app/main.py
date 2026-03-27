@@ -11,6 +11,7 @@ from app.core.security import hash_password
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.middleware.correlation import CorrelationIDMiddleware
+from app.middleware.api_version import APIVersionMiddleware
 from app.core.rate_limiter import limiter
 
 # Import all models so Base.metadata is populated before create_all
@@ -183,7 +184,46 @@ async def seed_plugin_registry() -> None:
             _logger.info("seed.plugin_registry", count=len(PLUGIN_REGISTRY_SEEDS))
 
 
-app = FastAPI(title="OpenAgentVisualizer API", version="3.0.0", lifespan=lifespan)
+_tags_metadata = [
+    {"name": "auth", "description": "Authentication — login, register, token refresh"},
+    {"name": "agents", "description": "Agent CRUD and status management"},
+    {"name": "events", "description": "Agent event ingestion and retrieval"},
+    {"name": "sessions", "description": "Agent session lifecycle"},
+    {"name": "spans", "description": "OpenTelemetry spans"},
+    {"name": "metrics", "description": "Time-series metrics aggregations"},
+    {"name": "alerts", "description": "Alert rules and alert history"},
+    {"name": "gamification", "description": "XP, levels, leaderboards"},
+    {"name": "quests", "description": "Quest system — daily, weekly, epic"},
+    {"name": "skills", "description": "Skill trees and agent skill progression"},
+    {"name": "wallet", "description": "In-game currency wallet and transactions"},
+    {"name": "shop", "description": "Item shop and inventory"},
+    {"name": "tournaments", "description": "Competitive tournament brackets"},
+    {"name": "seasons", "description": "Seasonal XP resets and rankings"},
+    {"name": "teams", "description": "Team collaboration and team XP"},
+    {"name": "challenges", "description": "Workspace challenges and progress"},
+    {"name": "notifications", "description": "User notification centre"},
+    {"name": "collaboration", "description": "Workspace invites and activity feed"},
+    {"name": "integrations", "description": "Cross-product Open* Suite integrations"},
+    {"name": "webhooks", "description": "Outbound webhook subscriptions and delivery log"},
+    {"name": "plugins", "description": "Plugin registry, install, and lifecycle management"},
+    {"name": "sso", "description": "Enterprise SSO — SAML 2.0 and OIDC"},
+    {"name": "organizations", "description": "Multi-org tenancy — org CRUD and membership"},
+    {"name": "shared-agents", "description": "Cross-workspace agent sharing"},
+    {"name": "admin", "description": "Administrative operations"},
+    {"name": "export", "description": "Data export endpoints"},
+    {"name": "health", "description": "Liveness and readiness probes"},
+]
+
+app = FastAPI(
+    title="OpenAgentVisualizer API",
+    version="3.0.0",
+    lifespan=lifespan,
+    openapi_tags=_tags_metadata,
+    description=(
+        "OpenAgentVisualizer — gamified virtual world for AI agent management. "
+        "All endpoints are available under both `/api/` (legacy) and `/api/v1/` (versioned)."
+    ),
+)
 
 app.state.limiter = limiter
 
@@ -191,7 +231,10 @@ from slowapi import _rate_limit_exceeded_handler  # noqa: E402
 from slowapi.errors import RateLimitExceeded  # noqa: E402
 
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# APIVersionMiddleware must be added before CorrelationIDMiddleware so path rewrite
+# happens first — middlewares execute in LIFO order with add_middleware.
 app.add_middleware(CorrelationIDMiddleware)
+app.add_middleware(APIVersionMiddleware)
 
 # ---- Prometheus metrics instrumentation ----
 # The /metrics endpoint is exposed without JWT auth (standard Prometheus scrape pattern).
