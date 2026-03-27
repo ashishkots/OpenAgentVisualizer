@@ -65,6 +65,9 @@ from app.routers import quests as quests_router
 from app.routers import skills as skills_router
 from app.routers import wallet as wallet_router
 from app.routers import shop as shop_router
+from app.routers import sso as sso_router
+from app.routers import organizations as organizations_router
+from app.routers import shared_agents as shared_agents_router
 from app.services.websocket_manager import manager as ws_manager
 from app.core.logging import get_logger
 
@@ -268,3 +271,6 @@ app.include_router(quests_router.router)
 app.include_router(skills_router.router)
 app.include_router(wallet_router.router)
 app.include_router(shop_router.router)
+app.include_router(sso_router.router)
+app.include_router(organizations_router.router)
+app.include_router(shared_agents_router.router)
