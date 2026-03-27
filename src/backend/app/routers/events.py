@@ -32,6 +32,11 @@ async def ingest_event(
     event = normalise_event(payload, workspace_id=workspace_id)
     pipeline = EventPipeline(redis)
     background_tasks.add_task(pipeline.publish, event)
+    try:
+        from app.core.metrics import oav_events_ingested_total
+        oav_events_ingested_total.inc()
+    except Exception:
+        pass
     return {"status": "accepted"}
 
 

@@ -1,0 +1,25 @@
+handoff:
+  from: "Tech Lead"
+  to: "Frontend Expert, Backend Expert"
+  stage: "2.1"
+  track: "Engineering"
+  status: "COMPLETE"
+  artifacts:
+    - path: "docs/superpowers/specs/2026-03-27-sprint3-architecture.md"
+      type: "spec"
+      summary: "Sprint 3 Architecture Design Document covering UE5 Pixel Streaming (WebRTC flow, /ws/ue5 protocol with 8 message types, fallback detection, Docker config), cross-product integration architecture (CircuitBreaker, BaseIntegrationClient, IntegrationConfig model, 4 integration services with Redis caching), CLI plugin (Click package structure, OAVClient, 12 commands), GitHub Actions CI (7 parallel jobs, workflow_dispatch), production Dockerfiles (multi-stage for backend and frontend), Prometheus metrics (7 named metrics, /metrics endpoint), E2E Playwright tests (12 scenarios, page object model), 17 new API endpoints, 1 Alembic migration, and 5-phase implementation sequencing."
+    - path: "docs/superpowers/specs/2026-03-27-sprint3-prd.md"
+      type: "document"
+      summary: "Sprint 3 PRD from Product Manager with 10 features, user stories, acceptance criteria, integration specifications, and risk assessment. Input document -- not authored by Tech Lead."
+    - path: "docs/superpowers/specs/2026-03-27-sprint2-architecture.md"
+      type: "spec"
+      summary: "Sprint 2 Architecture Document for continuity reference. Describes existing PixiJS scene graph, XState FSM, ReactFlow topology, WebSocket rooms, event replay, achievement system, and continuous aggregates. Input document -- not authored by Tech Lead."
+  evaluation_result:
+    verdict: "PASS"
+    confidence: "HIGH"
+    findings: "Architecture addresses all 10 Sprint 3 features with code-level specificity. UE5 Pixel Streaming is designed fallback-first (ADR-006) ensuring the product works without GPU infrastructure. Cross-product integrations use a consistent pattern (ADR-007) with shared CircuitBreaker base class, per-workspace configuration in database with Fernet encryption (ADR-008), and Redis caching with documented TTLs. CLI authenticates via existing API key mechanism (ADR-009). Prometheus metrics use standard library with 7 defined metrics (ADR-010). All new endpoints are documented with method, path, auth, request/response schemas. Single Alembic migration adds integration_configs table with unique index on (workspace_id, product_name). Implementation sequencing identifies critical path and parallelization opportunities across 5 phases over 13 days. No circular dependencies between features."
+  blockers: []
+  dependencies_met: true
+  notes: "Key implementation decisions for Backend Expert: (1) Circuit breaker state is in-memory per process, not Redis -- this avoids latency but means each worker has independent circuit state. Acceptable for the current single-backend-process deployment. (2) Integration API keys are encrypted with Fernet derived from SECRET_KEY -- if SECRET_KEY changes, all stored keys become unreadable; document this in deployment notes. (3) The /ws/live endpoint needs a small modification to accept X-API-Key query param as alternative to JWT token for CLI WebSocket streaming. (4) Add 'cryptography' and 'httpx' to requirements.txt. (5) The CLI is a separate package in src/cli/ with its own pyproject.toml -- it does not share the backend virtualenv. Key implementation decisions for Frontend Expert: (1) New pages are lazy-loaded via React.lazy, consistent with existing AppShell pattern. (2) TanStack Query hooks for integration APIs should use staleTime matching the backend Redis cache TTL to avoid redundant refetches. (3) The PixelStreamViewer component uses Epic's official npm library; if that library is unavailable or unstable, fall back to raw WebRTC via RTCPeerConnection directly. (4) TraceWaterfall is implemented with plain divs and Tailwind (no additional charting library). (5) Add data-testid attributes to all interactive elements early -- the E2E page objects depend on them. (6) Generate package-lock.json for CI cache efficiency (currently absent per known fix notes). (7) Import new lucide-react icons: Box, Activity, GitBranch, Brain, Shield for nav items."
+  timestamp: "2026-03-27T16:30:00Z"
+  step_count: 42

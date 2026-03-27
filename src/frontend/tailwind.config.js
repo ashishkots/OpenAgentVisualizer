@@ -3,7 +3,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Core tokens (existing)
+        // Core tokens (Sprint 2)
         'oav-bg': '#0f1117',
         'oav-surface': '#1e2433',
         'oav-border': '#2d3748',
@@ -19,8 +19,16 @@ export default {
         'oav-xp': '#06b6d4',
         'oav-surface-hover': '#283040',
         'oav-surface-active': '#2a3650',
+        // Sprint 3 new tokens
+        'oav-trace': '#f472b6',
+        'oav-mesh': '#34d399',
+        'oav-knowledge': '#60a5fa',
+        'oav-shield': '#fb923c',
+        'oav-3d': '#818cf8',
+        'oav-surface-elevated': '#232d3f',
       },
       keyframes: {
+        // Sprint 2 keyframes
         'xp-gain': {
           '0%':   { opacity: '1', transform: 'translateY(0px) scale(1)' },
           '60%':  { opacity: '1', transform: 'translateY(-20px) scale(1.1)' },
@@ -79,8 +87,45 @@ export default {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to:   { opacity: '1', transform: 'translateY(0)' },
         },
+        // Sprint 3 keyframes
+        'slide-in-right': {
+          from: { transform: 'translateX(100%)' },
+          to:   { transform: 'translateX(0)' },
+        },
+        'slide-out-right': {
+          from: { transform: 'translateX(0)' },
+          to:   { transform: 'translateX(100%)' },
+        },
+        'mesh-pulse': {
+          '0%':   { boxShadow: '0 0 0 0 rgba(52, 211, 153, 0.4)' },
+          '70%':  { boxShadow: '0 0 0 8px rgba(52, 211, 153, 0)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(52, 211, 153, 0)' },
+        },
+        'gauge-fill': {
+          from: { strokeDashoffset: '251.3' },
+          to:   { strokeDashoffset: 'var(--gauge-offset)' },
+        },
+        'grade-pop': {
+          '0%':   { transform: 'scale(1)' },
+          '50%':  { transform: 'scale(1.2)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'ue5-progress': {
+          from: { width: '0%' },
+          to:   { width: '100%' },
+        },
+        'waterfall-expand': {
+          from: { opacity: '0', transform: 'scaleY(0)', transformOrigin: 'top' },
+          to:   { opacity: '1', transform: 'scaleY(1)', transformOrigin: 'top' },
+        },
+        'knowledge-highlight': {
+          '0%':   { filter: 'brightness(1)' },
+          '50%':  { filter: 'brightness(1.3)' },
+          '100%': { filter: 'brightness(1.15)' },
+        },
       },
       animation: {
+        // Sprint 2 animations
         'xp-gain':       'xp-gain 1.5s ease-out forwards',
         'level-pulse':   'level-pulse 1.5s ease-in-out infinite',
         'badge-glow':    'badge-glow 500ms ease-in-out',
@@ -95,8 +140,17 @@ export default {
         'badge-slide-in':'badge-slide-in 0.4s ease-out forwards',
         'screen-flash':  'screen-flash 500ms ease-out forwards',
         'fade-in-up':    'fade-in-up 0.3s ease-out forwards',
+        // Sprint 3 animations
+        'slide-in-right': 'slide-in-right 300ms ease-out forwards',
+        'slide-out-right':'slide-out-right 300ms ease-in forwards',
+        'mesh-pulse':     'mesh-pulse 600ms ease-out',
+        'gauge-fill':     'gauge-fill 1.2s ease-out forwards',
+        'grade-pop':      'grade-pop 400ms ease-in-out',
+        'waterfall-expand':'waterfall-expand 200ms ease-out forwards',
+        'knowledge-highlight':'knowledge-highlight 500ms ease-in-out forwards',
       },
       zIndex: {
+        '44': '44',
         '45': '45',
         '60': '60',
         '70': '70',
@@ -108,6 +162,8 @@ export default {
         'glow-gold-lg':  '0 0 24px rgba(234, 179, 8, 0.627)',
         'glow-accent':   '0 0 12px rgba(59, 130, 246, 0.4)',
         'glow-error':    '0 0 12px rgba(239, 68, 68, 0.4)',
+        'glow-mesh':     '0 0 12px rgba(52, 211, 153, 0.4)',
+        'glow-3d':       '0 0 12px rgba(129, 140, 248, 0.4)',
       },
       transitionDuration: {
         '700': '700ms',

@@ -1,0 +1,174 @@
+handoff:
+  from: "UI Designer"
+  to: "Frontend Expert"
+  stage: "1.3"
+  track: "Product"
+  status: "COMPLETE"
+
+  artifacts:
+    - path: "docs/superpowers/specs/2026-03-27-sprint3-ui-design-system.md"
+      type: "design"
+      summary: >
+        Sprint 3 Visual Design System Extension. Contains: 6 new color tokens with
+        PixiJS integer equivalents, entity type color+shape system for the Knowledge
+        Graph (4 types), security grade color system (A–F, 5 colors), integration
+        status colors (4 states), detailed Tailwind class specs for 15 new components
+        (3D Viewer Chrome with all states, TraceWaterfall, TraceExplorer, MeshTopologyNode,
+        KnowledgeGraphNode 4 variants, SecurityGauge/GaugeChart, SecurityTable,
+        GradeBadge 3 sizes, ViolationTimeline Recharts config, IntegrationConfigCard
+        full structure, IntegrationStatusBadge, SlideInPanel unified component,
+        FallbackBanner generic + 3D variant, CLIOutputPreview), GSAP animation specs
+        for 7 trigger types with prefers-reduced-motion fallbacks, icon assignments
+        from lucide-react for all new navigation/integration/entity/grade/status
+        contexts, and a complete merged tailwind.config.js code block with all Sprint 2
+        and Sprint 3 tokens.
+
+    - path: "src/frontend/tailwind.config.js"
+      type: "config"
+      summary: >
+        Existing Tailwind config. The UI Design System document (above) contains the
+        authoritative full merged file content. The Frontend Expert should overwrite
+        this file with the merged block from Section 5 of the design system.
+
+  evaluation_result:
+    verdict: "PASS"
+    confidence: "HIGH"
+    findings: >
+      All 6 new pages from the UX wireframes have complete visual specs: 3D World View,
+      Trace Explorer, Mesh Topology, Knowledge Graph, Security Dashboard, Settings
+      Integrations tab. All 7 shared components specified in the UX handoff notes have
+      detailed Tailwind class implementations with full state coverage (default, hover,
+      active, disabled, loading, error). The 6 UX-specified color tokens are adopted
+      with one deliberate correction: oav-trace is #f472b6 (matching the UX wireframe
+      table at line 37), not the #a78bfa value mentioned in a PRD brainstorming note.
+      This is explicitly documented in Section 1.1. WCAG 2.1 AA compliance rules are
+      specified per token with clear usage constraints for oav-knowledge and oav-3d
+      (large/bold text only). Sprint 2 design continuity is maintained: same card
+      radius (rounded-xl), spacing (p-4/p-5/p-6), surface colors, typography scale,
+      z-index layers, and animation conventions (GSAP with prefers-reduced-motion
+      guard). The SlideInPanel is a unified component (single base component with
+      variant-specific content) to prevent code duplication across Trace/Knowledge/
+      Security/3D pages. The tailwind.config.js extension block in Section 5 is the
+      complete merged file — Frontend Expert should replace the current file entirely
+      rather than manually merging.
+    blockers: []
+
+  key_decisions:
+    - decision: "oav-trace token value"
+      value: "#f472b6"
+      rationale: >
+        UX wireframes table (line 37) specifies #f472b6. The PRD mentioned #a78bfa in
+        brainstorming context but the UX handoff confirms the pink-400 value. The pink
+        hue provides strong visual differentiation from the existing oav-purple (#a855f7)
+        and better contrast (5.2:1) on the dark surface.
+
+    - decision: "SlideInPanel as a unified component"
+      value: "Single base component src/frontend/src/components/ui/SlideInPanel.tsx"
+      rationale: >
+        Span Detail, Entity Detail, Agent Security Detail, and 3D Agent Sidebar all
+        use the same 300ms translateX slide-in, backdrop, and close button pattern.
+        A single SlideInPanel base with slot-based content reduces duplication and
+        ensures animation consistency. Width variants (360px vs 320px) are passed
+        as props.
+
+    - decision: "Hexagon node border rendering"
+      value: "box-shadow workaround: box-shadow: 0 0 0 2px #fb923c"
+      rationale: >
+        CSS border-2 is clipped by clip-path and not visible on the Embedding hexagon
+        node. Using box-shadow to simulate a border is the reliable cross-browser
+        approach that clip-path does not affect. Alternative: SVG-based hexagon
+        (slightly more complex). Either approach is acceptable; Frontend Expert can
+        choose.
+
+    - decision: "Gauge SVG approach"
+      value: "SVG semicircle with stroke-dasharray/dashoffset animation"
+      rationale: >
+        Recharts RadialBarChart has limited customization for the exact semicircular
+        gauge design needed. A hand-crafted SVG arc gives full control over the
+        arc gradient, needle indicator, and GSAP animation of the dashoffset.
+        The viewBox is 200×120 to achieve a wide semicircle.
+
+    - decision: "3D viewer desktop-only enforcement"
+      value: "Router-level redirect on mobile (< 768px breakpoint) to /world"
+      rationale: >
+        UX wireframes specify /world3d is desktop-only. The redirect happens in the
+        ThreeDWorldPage component on mount using useEffect + useNavigate. The 3D
+        nav item is hidden on the mobile bottom tab bar but visible in the mobile
+        More sheet with a "(Desktop only)" label so users are informed.
+
+    - decision: "oav-surface-elevated usage boundary"
+      value: "Canvas-overlay panels only; standard page content uses oav-surface"
+      rationale: >
+        oav-surface-elevated (#232d3f) is 14px lighter than oav-surface (#1e2433),
+        providing a clear visual layer separation when panels float over dark canvas
+        backgrounds. Standard page-content panels (e.g. search bars, tables) continue
+        to use oav-surface to maintain Sprint 2 visual consistency.
+
+  implementation_notes:
+    tailwind_config: >
+      Section 5 of the design system contains the complete merged tailwind.config.js.
+      Replace the entire file — do not manually diff/merge as the Sprint 2 single-line
+      keyframe formatting in the merged block is intentional for file size.
+
+    gsap_guard: >
+      All GSAP calls must be wrapped with the prefersReducedMotion guard from Sprint 2
+      Section 5.8. The animateSafe() helper function already exists in the codebase
+      (established in Sprint 2). Sprint 3 animations must use it.
+
+    reactflow_nodes: >
+      MeshTopologyNode and KnowledgeGraphNode are ReactFlow custom nodes. Register them
+      via nodeTypes prop on the ReactFlow component. The node components receive the
+      standard ReactFlow NodeProps plus domain-specific data (meshRole, entityType, etc.)
+      passed via the data prop.
+
+    span_bar_positioning: >
+      Waterfall span bars must be positioned as: left% = (span.start_time - trace.start_time)
+      / trace.duration_ms * 100, width% = span.duration_ms / trace.duration_ms * 100.
+      Minimum width is 3px regardless of calculated percentage. JavaScript handles this
+      calculation since CSS cannot compute cross-element percentages.
+
+    knowledge_graph_shapes: >
+      The diamond shape for Agent Memory nodes uses CSS rotate-45 on the inner square.
+      The outer wrapper (56×56px) must NOT be rotated — only the inner background div
+      rotates. The icon and text inside the diamond must be in a separate div within
+      the rotated square so that they counter-rotate and appear upright.
+
+    integration_status_polling: >
+      Integration health status is polled every 60 seconds by the frontend. The
+      IntegrationStatusBadge component should subscribe to a Zustand integration store
+      (new Sprint 3 store: useIntegrationStore) rather than accepting status as a prop
+      directly, to ensure all badges on the page update atomically when the poll
+      result arrives.
+
+    security_gauge_animation: >
+      The gauge SVG uses stroke-dasharray="251.3" (π × 80, the half-circumference of
+      a circle with radius 80). On mount, animate from dashoffset=251.3 (empty arc)
+      to dashoffset=(251.3 * (1 - score/100)) over 1.2s ease-out using GSAP. On
+      subsequent score changes, tween from current offset to new offset.
+
+    violation_timeline_dots: >
+      The Recharts Line dot coloring by severity requires a custom Dot shape component
+      passed to the Line's dot prop. The custom component receives the data point and
+      returns a filled SVG circle with the severity color. Implementation pattern:
+      const CustomDot = (props) => { const { cx, cy, payload } = props; return
+      <circle cx={cx} cy={cy} r={4} fill={getSeverityColor(payload.maxSeverity)} />; }
+
+  component_priority_order:
+    - "SlideInPanel (base) — used by 4 feature areas, build first"
+    - "IntegrationStatusBadge — used in multiple pages as a shared indicator"
+    - "GradeBadge — used by SecurityTable and SecurityGauge"
+    - "TraceWaterfall — core of OAV-302 (Must-Have)"
+    - "MeshTopologyNode — core of OAV-303 (Must-Have)"
+    - "UE5StreamContainer + all 3D Chrome components — core of OAV-301 (Must-Have)"
+    - "TraceExplorer page assembly"
+    - "MeshTopology page assembly"
+    - "KnowledgeGraphNode — OAV-304 (Should-Have)"
+    - "KnowledgeGraph page assembly"
+    - "SecurityGauge + SecurityTable + ViolationTimeline — OAV-305 (Nice-to-Have)"
+    - "Security Dashboard page assembly"
+    - "IntegrationConfigCard — Settings Integrations tab"
+    - "CLIOutputPreview — optional Sprint 3 bonus"
+
+  dependencies_met: true
+  timestamp: "2026-03-27T17:00:00Z"
+  step_count: 1

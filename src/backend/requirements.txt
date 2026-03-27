@@ -1,5 +1,6 @@
 # Core Framework
 fastapi==0.110.3
+gunicorn==22.0.0
 uvicorn[standard]==0.29.0
 pydantic==2.7.4
 pydantic-settings==2.3.4
@@ -28,6 +29,13 @@ celery[redis]==5.4.0
 opentelemetry-proto==1.24.0
 protobuf==4.25.3
 grpcio==1.64.1
+
+# Encryption (for Fernet integration key storage)
+cryptography==42.0.8
+
+# Prometheus metrics
+prometheus-client==0.21.0
+prometheus-fastapi-instrumentator==7.0.0
 
 # Utilities
 orjson==3.10.5

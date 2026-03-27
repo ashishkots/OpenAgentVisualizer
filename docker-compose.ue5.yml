@@ -1,0 +1,40 @@
+version: "3.9"
+
+# UE5 Pixel Streaming stack (GPU host required).
+# Run alongside the main stack:
+#   docker compose -f docker-compose.yml -f docker-compose.ue5.yml up
+#
+# Requires:
+#   - GPU-equipped host with NVIDIA Container Toolkit
+#   - UE5_API_KEY env var: API key registered in the OAV backend
+#   - UE5_IMAGE env var (optional): custom UE5 image, defaults to ghcr.io/ashishkots/oav-ue5:latest
+#
+# Environment variables to set:
+#   UE5_API_KEY   — API key registered in OAV backend (used by UE5 to authenticate /ws/ue5)
+#   UE5_IMAGE     — Docker image for UE5 application (optional)
+
+services:
+  signaling:
+    image: ghcr.io/epicgames/pixel-streaming-signalling-server:5.5
+    ports:
+      - "8888:8888"   # HTTP signaling
+      - "8443:8443"   # WSS signaling
+    environment:
+      - STUN_SERVER=stun:stun.l.google.com:19302
+    restart: unless-stopped
+
+  ue5-app:
+    image: ${UE5_IMAGE:-ghcr.io/ashishkots/oav-ue5:latest}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    environment:
+      - SIGNALING_URL=ws://signaling:8888
+      - BACKEND_WS_URL=ws://host.docker.internal:8000/ws/ue5
+      - BACKEND_API_KEY=${UE5_API_KEY}
+      - WORKSPACE_ID=${WORKSPACE_ID:-}
+    depends_on:
+      - signaling
+    restart: unless-stopped

@@ -24,6 +24,11 @@ class RoomWebSocketManager:
     async def connect(self, ws: WebSocket) -> None:
         """Accept the WebSocket handshake."""
         await ws.accept()
+        try:
+            from app.core.metrics import oav_websocket_connections_active
+            oav_websocket_connections_active.inc()
+        except Exception:
+            pass  # Metrics import may fail during tests
 
     def subscribe(self, ws: WebSocket, room: str) -> None:
         """Subscribe a connection to a room."""
@@ -37,8 +42,15 @@ class RoomWebSocketManager:
 
     def disconnect(self, ws: WebSocket) -> None:
         """Remove a connection from all rooms and clean up."""
+        was_connected = ws in self._ws_rooms
         for room in list(self._ws_rooms.pop(ws, set())):
             self._rooms[room].discard(ws)
+        if was_connected:
+            try:
+                from app.core.metrics import oav_websocket_connections_active
+                oav_websocket_connections_active.dec()
+            except Exception:
+                pass  # Metrics import may fail during tests
 
     def get_rooms_for_connection(self, ws: WebSocket) -> set[str]:
         """Return the set of rooms a connection is subscribed to."""

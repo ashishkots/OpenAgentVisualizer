@@ -1,0 +1,19 @@
+handoff:
+  from: "UX Designer"
+  to: "UI Designer"
+  stage: "1.2"
+  track: "Product"
+  status: "COMPLETE"
+  artifacts:
+    - path: "docs/superpowers/specs/2026-03-27-sprint3-ux-wireframes.md"
+      type: "design"
+      summary: "Sprint 3 UX wireframes covering 6 new pages (3D World View, Trace Explorer, Mesh Topology, Knowledge Graph, Security Dashboard, Settings Integrations tab), updated information architecture with sidebar integrations group, interaction flows for all features, component hierarchy for 60+ new components, 5 new Zustand stores, CLI terminal output patterns for 7 command types, responsive behavior specifications, WCAG 2.1 AA accessibility additions, and 7 E2E test user journeys."
+  evaluation_result:
+    verdict: "PASS"
+    confidence: "HIGH"
+    findings: "All 8 Sprint 3 features from the PRD have been addressed in the wireframes. Design continuity with Sprint 2 is maintained: same card styling, panel patterns, color tokens, typography scale, spacing scale, and Tailwind conventions. New color tokens (oav-trace, oav-mesh, oav-knowledge, oav-shield, oav-3d, oav-surface-elevated) have been verified for WCAG 2.1 AA contrast ratios. The sidebar navigation has been restructured with a collapsible Integrations group to prevent nav overflow. The 3D viewer uses a fallback-first approach consistent with the PRD requirement that 2D PixiJS is always the guaranteed baseline. All four cross-product integrations follow the same UX pattern: search/filter bar, data table or graph, detail panel, fallback/empty state, integration status indicator. Settings page transitions to a tabbed layout to accommodate the new Integrations section. CLI output patterns use rich library formatting conventions (tables, panels, live displays, ASCII charts). Component naming follows the existing PascalCase file convention with domain-based directory grouping."
+  blockers: []
+  dependencies_met: true
+  notes: "Key design decisions documented in Section 13 of the wireframes: (1) Integration pages grouped under collapsible sidebar section to prevent nav overflow. (2) 3D viewer is a separate route /world3d rather than a tab on /world, because PixiJS and UE5 Pixel Streaming are incompatible rendering contexts. (3) Agent Detail Traces tab shows a simplified list, not full waterfall -- users click through to Trace Explorer for the full experience. (4) Settings page now uses tabs instead of scrolling sections due to the added Integrations content. (5) 3D viewer is desktop-only -- mobile and tablet redirect to /world automatically. The UI Designer should pay special attention to: the entity type shape-color system for the Knowledge Graph (4 distinct node shapes with consistent color treatment), the security grade color system (A-F with 5 distinct colors), and the waterfall span bar positioning system in the Trace Explorer (bars must be positioned relative to trace start time with proper nesting indentation)."
+  timestamp: "2026-03-27T15:30:00Z"
+  step_count: 1

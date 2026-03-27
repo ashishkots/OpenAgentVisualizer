@@ -1,0 +1,34 @@
+[project]
+name = "oav-cli"
+version = "0.1.0"
+description = "CLI plugin for OpenAgentVisualizer — stream events, inspect agents, view metrics"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "click>=8.1",
+    "httpx>=0.27",
+    "websockets>=12.0",
+    "rich>=13.0",
+    "asciichartpy>=1.5",
+    "tomli>=2.0; python_version < '3.11'",
+    "tomli-w>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+]
+
+[project.scripts]
+oav = "oav_cli.main:cli"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["oav_cli*"]

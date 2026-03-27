@@ -5,6 +5,7 @@ from app.models.metrics import MetricsRaw, MetricsAgg
 from app.models.gamification import XPTransaction, Alert
 from app.models.audit import AuditLog
 from app.models.achievement import Achievement
+from app.models.integration import IntegrationConfig
 
 __all__ = [
     "User", "Workspace", "WorkspaceMember", "APIKey",
@@ -14,4 +15,5 @@ __all__ = [
     "XPTransaction", "Alert",
     "AuditLog",
     "Achievement",
+    "IntegrationConfig",
 ]

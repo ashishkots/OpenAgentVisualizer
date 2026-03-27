@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, HTTPException, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,14 +7,33 @@ from jose import JWTError
 import orjson
 
 from app.services.websocket_manager import manager
-from app.core.security import decode_token
+from app.core.security import decode_token, pwd_context as _pwd_ctx
 from app.core.database import AsyncSessionLocal, get_db
 from app.core.dependencies import get_workspace_id
-from app.models.user import User, WorkspaceMember
+from app.models.user import User, WorkspaceMember, APIKey
 from app.models.agent import Agent
 from app.models.event import Event, AgentSession
 
 router = APIRouter(tags=["websocket"])
+
+
+async def _resolve_workspace_from_api_key(api_key: str) -> Optional[str]:
+    """Resolve workspace_id from a raw API key string.
+
+    Returns workspace_id on success, None if key is invalid.
+    Checks at most 50 active keys to bound bcrypt computation (DoS protection).
+    """
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(APIKey)
+            .where(APIKey.is_active == True)  # noqa: E712
+            .limit(50)
+        )
+        keys = result.scalars().all()
+        for key in keys:
+            if _pwd_ctx.verify(api_key, key.key_hash):
+                return key.workspace_id
+    return None
 
 
 def _validate_room_access(room: str, workspace_id: str) -> bool:
@@ -127,11 +148,18 @@ async def _build_room_snapshot(room: str, workspace_id: str, db: AsyncSession) -
 async def ws_live(
     websocket: WebSocket,
     workspace_id: str = Query(...),
-    token: str = Query(...),
+    token: Optional[str] = Query(None),
+    api_key: Optional[str] = Query(None, description="API key for CLI / non-browser clients (ADR-009)"),
 ) -> None:
     """WebSocket endpoint for real-time agent event streaming with room support.
 
-    Connect with: ws://server/ws/live?workspace_id=<workspace_id>&token=<jwt>
+    Authentication:
+      - Browser clients: provide ``token`` (JWT) query param.
+      - CLI / non-browser clients: provide ``api_key`` query param (ADR-009).
+
+    Connect with:
+      ws://server/ws/live?workspace_id=<id>&token=<jwt>
+      ws://server/ws/live?workspace_id=<id>&api_key=<key>
 
     Client messages:
       {"action": "subscribe",   "room": "workspace:{id}"}
@@ -140,31 +168,41 @@ async def ws_live(
 
     Server messages include "room" and "sequence" fields on every event.
     """
-    # Authenticate JWT and verify workspace membership
-    try:
-        payload = decode_token(token)
-        user_id = payload.get("sub")
-        if not user_id:
+    # Authenticate via API key (CLI path) or JWT (browser path)
+    if api_key:
+        resolved_workspace = await _resolve_workspace_from_api_key(api_key)
+        if not resolved_workspace or resolved_workspace != workspace_id:
             await websocket.close(code=4001)
             return
-    except JWTError:
+    elif token:
+        # Authenticate JWT and verify workspace membership
+        try:
+            payload = decode_token(token)
+            user_id = payload.get("sub")
+            if not user_id:
+                await websocket.close(code=4001)
+                return
+        except JWTError:
+            await websocket.close(code=4001)
+            return
+
+        async with AsyncSessionLocal() as db:
+            user = await db.get(User, user_id)
+            if not user:
+                await websocket.close(code=4001)
+                return
+            member = await db.scalar(
+                select(WorkspaceMember).where(
+                    WorkspaceMember.user_id == user_id,
+                    WorkspaceMember.workspace_id == workspace_id,
+                )
+            )
+            if not member:
+                await websocket.close(code=4001)
+                return
+    else:
         await websocket.close(code=4001)
         return
-
-    async with AsyncSessionLocal() as db:
-        user = await db.get(User, user_id)
-        if not user:
-            await websocket.close(code=4001)
-            return
-        member = await db.scalar(
-            select(WorkspaceMember).where(
-                WorkspaceMember.user_id == user_id,
-                WorkspaceMember.workspace_id == workspace_id,
-            )
-        )
-        if not member:
-            await websocket.close(code=4001)
-            return
 
     await manager.connect(websocket)
     # Auto-subscribe to the workspace room so clients receive all workspace events

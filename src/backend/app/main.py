@@ -17,6 +17,7 @@ from app.models.gamification import XPTransaction, Alert  # noqa: F401
 from app.models.metrics import MetricsRaw, MetricsAgg  # noqa: F401
 from app.models.audit import AuditLog  # noqa: F401
 from app.models.achievement import Achievement  # noqa: F401
+from app.models.integration import IntegrationConfig  # noqa: F401
 
 from app.routers import (
     auth,
@@ -30,6 +31,8 @@ from app.routers import (
 )
 from app.routers import websocket as ws_router
 from app.routers.spans import router as spans_router
+from app.routers import integrations as integrations_router
+from app.routers import ue5_websocket
 
 
 @asynccontextmanager
@@ -61,7 +64,20 @@ async def seed_default_user() -> None:
         await db.commit()
 
 
-app = FastAPI(title="OpenAgentVisualizer API", version="2.0.0", lifespan=lifespan)
+app = FastAPI(title="OpenAgentVisualizer API", version="3.0.0", lifespan=lifespan)
+
+# ---- Prometheus metrics instrumentation ----
+# The /metrics endpoint is exposed without JWT auth (standard Prometheus scrape pattern).
+# excluded_handlers prevents the /metrics endpoint from being tracked in HTTP counters,
+# which would cause infinite recursion on scrape.
+from prometheus_fastapi_instrumentator import Instrumentator  # noqa: E402
+
+_instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    should_ignore_untemplated=True,
+    excluded_handlers=["/metrics", "/api/health"],
+)
+_instrumentator.instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
 @app.get("/api/health")
@@ -79,3 +95,5 @@ app.include_router(metrics.router)
 app.include_router(alerts.router)
 app.include_router(gamification.router)
 app.include_router(spans_router)
+app.include_router(integrations_router.router)
+app.include_router(ue5_websocket.router)

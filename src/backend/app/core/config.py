@@ -22,6 +22,20 @@ class Settings(BaseSettings):
     SEED_EMAIL: str = "kotsai@gmail.com"
     SEED_PASSWORD: str = "kots@123"
 
+    # UE5 Pixel Streaming
+    UE5_ENABLED: bool = False
+    UE5_SIGNALING_URL: str = "ws://localhost:8888"
+
+    # Cross-product integration defaults (per-workspace DB config takes precedence)
+    OPENTRACE_BASE_URL: str = ""
+    OPENTRACE_API_KEY: str = ""
+    OPENMESH_BASE_URL: str = ""
+    OPENMESH_API_KEY: str = ""
+    OPENMIND_BASE_URL: str = ""
+    OPENMIND_API_KEY: str = ""
+    OPENSHIELD_BASE_URL: str = ""
+    OPENSHIELD_API_KEY: str = ""
+
     model_config = {"env_file": ".env", "case_sensitive": True}
 
 

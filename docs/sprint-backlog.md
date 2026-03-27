@@ -112,20 +112,50 @@
 
 ---
 
-## Sprint 3: 3D Viewer and Integrations
+## Sprint 3: 3D Viewer and Integrations (Complete)
 
-| ID | Task | Priority | Estimate |
-|----|------|----------|----------|
-| OAV-301 | Unreal Engine 3D viewer integration | High | 10d |
-| OAV-302 | OpenTrace integration (visualize traces) | High | 3d |
-| OAV-303 | OpenMesh integration (workflow visualization) | High | 3d |
-| OAV-304 | OpenMind integration (knowledge graph viz) | Medium | 3d |
-| OAV-305 | OpenShield integration (security posture viz) | Medium | 2d |
-| OAV-306 | CLI plugin for Claude Code / Codex | Medium | 5d |
-| OAV-235 | E2E tests with Playwright (deferred from Sprint 2) | Low | 3d |
-| OAV-241 | GitHub Actions CI pipeline (deferred from Sprint 2) | High | 1d |
-| OAV-242 | Production Dockerfile (deferred from Sprint 2) | Medium | 1d |
-| OAV-243 | Prometheus metrics endpoint (deferred from Sprint 2) | Medium | 1d |
+| ID | Task | Priority | Status |
+|----|------|----------|--------|
+| OAV-301 | Unreal Engine 3D viewer (Pixel Streaming + fallback) | High | Done |
+| OAV-302 | OpenTrace integration (trace waterfall + explorer) | High | Done |
+| OAV-303 | OpenMesh integration (mesh topology + live updates) | High | Done |
+| OAV-304 | OpenMind integration (knowledge graph + search) | Medium | Done |
+| OAV-305 | OpenShield integration (compliance + security grades) | Medium | Done |
+| OAV-306 | CLI plugin (oav-cli, 10 commands, Rich output) | Medium | Done |
+| OAV-235 | E2E test setup with Playwright (12 scenarios) | Low | Done |
+| OAV-241 | GitHub Actions CI pipeline (7 jobs, workflow_dispatch) | High | Done |
+| OAV-242 | Production Dockerfiles (multi-stage, backend + frontend) | Medium | Done |
+| OAV-243 | Prometheus metrics endpoint (7 named metrics) | Medium | Done |
+
+### Pipeline Artifacts
+
+| Stage | Agent | Artifact | Path |
+|-------|-------|----------|------|
+| 1.1 | Product Manager | Sprint 3 PRD | docs/superpowers/specs/2026-03-27-sprint3-prd.md |
+| 1.2 | UX Designer | Wireframes + Interaction Flows | docs/superpowers/specs/2026-03-27-sprint3-ux-wireframes.md |
+| 1.3 | UI Designer | Visual Design System Extension | docs/superpowers/specs/2026-03-27-sprint3-ui-design-system.md |
+| 2.1 | Tech Lead | Architecture (ADRs 006-010) | docs/superpowers/specs/2026-03-27-sprint3-architecture.md |
+| 2.2a | Frontend Expert | 3D viewer + integration pages + E2E | src/frontend/src/ |
+| 2.2b | Backend Expert | Integrations + Prometheus + Docker + CI + CLI | src/backend/app/, src/cli/ |
+| 2.3 | Code Reviewer | Review Report (Pass, 5 fixes) | docs/superpowers/specs/2026-03-27-sprint3-code-review.md |
+| 2.4 | QA Engineer | QA Report (Pass) | docs/superpowers/specs/2026-03-27-sprint3-qa-report.md |
+| 2.5 | Agentic AI Expert | SDK Validation (2 gaps fixed) | src/sdk/ |
+
+### Key Architecture Decisions (Sprint 3)
+
+- **ADR-006**: UE5 fallback-first — 2D canvas baseline, 3D progressive enhancement (3s WebRTC timeout)
+- **ADR-007**: Shared integration pattern — BaseIntegrationClient with CircuitBreaker (3 failures, 60s open)
+- **ADR-008**: Dual config — env vars (defaults) + DB table (per-workspace), Fernet API key encryption
+- **ADR-009**: CLI API key auth — X-API-Key header, /ws/live accepts api_key query param
+- **ADR-010**: Prometheus — 7 metrics, /metrics no auth, prometheus-fastapi-instrumentator
+
+### Code Review Findings (Fixed)
+
+- World3DPage boolean logic bug (ADR-006 violation) — fixed
+- MeshTopologyPage missing type imports — fixed
+- TraceExplorerPage missing React key — fixed
+- URL injection in openmind/opentrace services — fixed with URL encoding
+- UE5 WebSocket dead connection cleanup — fixed
 
 ---
 
@@ -137,9 +167,21 @@
   - 3 critical bugs caught and fixed by Code Review
   - 4 non-critical API mismatches fixed by QA
   - 166+ total test cases (104+ frontend, 62+ backend new)
-  - 5 architecture decision records
+  - 5 architecture decision records (ADR-001 to ADR-005)
   - Full gamification: 10-level XP, 10 achievements, leaderboard with time/category scoping
   - Scene graph: PixiJS canvas with sprite pooling, 60fps at 50+ agents
   - State machines: XState v5 FSM with MachineManager pattern
   - Real-time: WebSocket rooms via Redis Pub/Sub with sequence recovery
+- Sprint 3 delivered 10 features: 3D viewer, cross-product integrations, CLI, DevOps
+  - 10 pipeline stages executed
+  - 5 critical bugs caught and fixed by Code Review
+  - 3 QA items resolved (schema mismatch, cache key scoping, tab wiring)
+  - 2 SDK gaps fixed by AAI (OTLP span attributes, tracer event propagation)
+  - 5 architecture decision records (ADR-006 to ADR-010)
+  - 4 cross-product integrations with circuit breaker pattern
+  - CLI plugin with 10 commands and Rich terminal output
+  - Production Docker stack: 3 compose files (prod, monitoring, UE5)
+  - GitHub Actions CI: 7 parallel jobs, workflow_dispatch only
+  - Prometheus: 7 named metrics
 - Key visualization libraries fully integrated: PixiJS, XState, ReactFlow, GSAP (Rive deferred as progressive enhancement)
+- All 3 sprints complete: 54 features delivered across 30 pipeline stage executions

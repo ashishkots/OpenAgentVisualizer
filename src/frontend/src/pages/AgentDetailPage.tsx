@@ -7,6 +7,7 @@ import {
   Play,
   TrendingUp,
   Cpu,
+  GitBranch,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { apiClient } from '../services/api';
@@ -22,16 +23,18 @@ import { formatCost } from '../lib/formatters';
 import { clsx } from 'clsx';
 import type { Agent } from '../types/agent';
 import type { Achievement } from '../types/gamification';
+import { AgentTracesTab } from '../components/agents/AgentTracesTab';
 import { formatDistanceToNow } from 'date-fns';
 
-type Tab = 'events' | 'state' | 'achievements' | 'sessions' | 'xp';
+type Tab = 'events' | 'state' | 'achievements' | 'sessions' | 'xp' | 'traces';
 
 const TABS: { id: Tab; label: string; icon: React.FC<{ className?: string }> }[] = [
-  { id: 'events',       label: 'Events',        icon: Activity },
-  { id: 'state',        label: 'State Machine',  icon: Cpu      },
-  { id: 'achievements', label: 'Achievements',   icon: Award    },
-  { id: 'sessions',     label: 'Sessions',       icon: Play     },
+  { id: 'events',       label: 'Events',        icon: Activity   },
+  { id: 'state',        label: 'State Machine',  icon: Cpu        },
+  { id: 'achievements', label: 'Achievements',   icon: Award      },
+  { id: 'sessions',     label: 'Sessions',       icon: Play       },
   { id: 'xp',           label: 'XP History',     icon: TrendingUp },
+  { id: 'traces',       label: 'Traces',         icon: GitBranch  },
 ];
 
 interface AgentEvent {
@@ -297,6 +300,11 @@ export function AgentDetailPage() {
           <div className="bg-oav-surface border border-oav-border rounded-xl overflow-hidden">
             <EmptyState message="Session history available in Sessions page" />
           </div>
+        )}
+
+        {/* Traces Tab */}
+        {activeTab === 'traces' && agentId && (
+          <AgentTracesTab agentId={agentId} />
         )}
 
         {/* XP History Tab */}

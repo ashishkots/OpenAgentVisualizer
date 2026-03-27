@@ -1,0 +1,230 @@
+handoff:
+  from: "Backend Expert"
+  to: "Code Reviewer"
+  stage: "2.2b"
+  track: "Engineering"
+  sprint: 3
+  status: "COMPLETE"
+  timestamp: "2026-03-27T20:00:00Z"
+
+  artifacts:
+    # ---- Phase 1: Foundation ----
+    - path: "src/backend/app/core/metrics.py"
+      type: "code"
+      summary: "7 named Prometheus metrics: oav_events_ingested_total (Counter), oav_websocket_connections_active (Gauge), oav_agents_active (Gauge), oav_xp_awarded_total (Counter), oav_celery_tasks_total (Counter, labeled by task_name+status), oav_celery_task_duration_seconds (Histogram, labeled by task_name), oav_integration_requests_total (Counter, labeled by integration+status)."
+
+    - path: "src/backend/app/main.py"
+      type: "code"
+      summary: "Updated to v3.0.0. Added prometheus-fastapi-instrumentator Instrumentator, registered /metrics endpoint excluded from JWT auth. Added imports for IntegrationConfig model, integrations router, and ue5_websocket router."
+
+    - path: "src/backend/app/core/config.py"
+      type: "code"
+      summary: "Added UE5_ENABLED, UE5_SIGNALING_URL, and 8 integration env vars (OPENTRACE_BASE_URL/API_KEY, OPENMESH_BASE_URL/API_KEY, OPENMIND_BASE_URL/API_KEY, OPENSHIELD_BASE_URL/API_KEY)."
+
+    - path: "src/backend/app/core/celery_app.py"
+      type: "code"
+      summary: "Added app.tasks.integrations to includes. Added sync-integrations (5min) and apply-xp-decay (24h) beat schedules. Added task_prerun/task_postrun signal handlers to track oav_celery_tasks_total and oav_celery_task_duration_seconds."
+
+    - path: "src/backend/requirements.txt"
+      type: "config"
+      summary: "Added gunicorn==22.0.0, cryptography==42.0.8, prometheus-client==0.21.0, prometheus-fastapi-instrumentator==7.0.0."
+
+    - path: "src/backend/Dockerfile.prod"
+      type: "infrastructure"
+      summary: "Multi-stage production Dockerfile. Stage 1 (builder): python:3.12-slim, installs pip+requirements into /opt/venv. Stage 2 (production): python:3.12-slim, non-root 'oav' user, health check via urllib, gunicorn with UvicornWorker, exposes port 8000."
+
+    - path: "src/frontend/Dockerfile.prod"
+      type: "infrastructure"
+      summary: "Multi-stage production Dockerfile. Stage 1 (deps): node:20-alpine, npm install. Stage 2 (builder): npm run build with VITE_ build args. Stage 3 (production): nginx:1.25-alpine, non-root 'oav' user, exposes port 80."
+
+    - path: ".github/workflows/ci.yml"
+      type: "infrastructure"
+      summary: "workflow_dispatch only CI pipeline. 7 parallel jobs: backend-lint (ruff), backend-typecheck (mypy), backend-test (pytest with postgres+redis services), frontend-lint (ESLint), frontend-typecheck (tsc), frontend-test (Vitest). docker-build waits for backend-test+frontend-test. e2e-test waits for docker-build. All jobs use pip/npm caching."
+
+    # ---- Phase 2: Integration Foundation ----
+    - path: "src/backend/app/core/integrations.py"
+      type: "code"
+      summary: "CircuitBreaker class (3 failures, 60s open, half_open->closed on success_threshold=1). Fernet encryption helpers (encrypt_api_key/decrypt_api_key via sha256(SECRET_KEY) derived key). BaseIntegrationClient with _get_config (DB-first, env fallback), _request (circuit breaker wrapped), and health_check methods."
+
+    - path: "src/backend/app/models/integration.py"
+      type: "code"
+      summary: "IntegrationConfig SQLAlchemy model: id, workspace_id (FK), product_name (50), base_url (500), api_key_encrypted (Text), enabled, settings_json (Text), created_at, updated_at. Unique index on (workspace_id, product_name)."
+
+    - path: "src/backend/app/schemas/integration.py"
+      type: "code"
+      summary: "IntegrationConfigCreate (product_name validated to allowed set, base_url validated http/https), IntegrationConfigUpdate (all optional), IntegrationConfigResponse (api_key never included), IntegrationHealthResponse."
+
+    - path: "src/backend/alembic/versions/004_integration_configs.py"
+      type: "migration"
+      summary: "Alembic migration 004 (revises 003): creates integration_configs table with CASCADE FK to workspaces, unique index on (workspace_id, product_name), and workspace_id index."
+
+    # ---- Phase 2: Integration Services ----
+    - path: "src/backend/app/services/opentrace_service.py"
+      type: "code"
+      summary: "OpenTraceService(BaseIntegrationClient): get_traces (Redis 30s cache), get_trace_detail (Redis 5min cache), get_trace_waterfall, search_traces (uncached). Module-level opentrace_service singleton."
+
+    - path: "src/backend/app/services/openmesh_service.py"
+      type: "code"
+      summary: "OpenMeshService(BaseIntegrationClient): get_topology (Redis 60s cache), get_node (uncached), get_stats (Redis 5min cache). Module-level singleton."
+
+    - path: "src/backend/app/services/openmind_service.py"
+      type: "code"
+      summary: "OpenMindService(BaseIntegrationClient): get_graph (Redis 5min cache, paginated by limit/offset), get_entity (Redis 10min cache), search_entities (uncached). Module-level singleton."
+
+    - path: "src/backend/app/services/openshield_service.py"
+      type: "code"
+      summary: "OpenShieldService(BaseIntegrationClient): get_posture (Redis 2min cache), get_agent_posture (Redis 2min cache), get_violations (uncached, time-range), get_agent_violations (uncached). Module-level singleton."
+
+    # ---- Phase 2: Integration Routers ----
+    - path: "src/backend/app/routers/integrations/__init__.py"
+      type: "code"
+      summary: "Aggregates all integration sub-routers into a single APIRouter exported as 'router'."
+
+    - path: "src/backend/app/routers/integrations/config.py"
+      type: "code"
+      summary: "CRUD for integration_configs: GET /config, PUT /config/{product}, PATCH /config/{product}, DELETE /config/{product} (204), POST /{product}/test (health probe), GET /health (all products health check with asyncio.gather)."
+
+    - path: "src/backend/app/routers/integrations/opentrace.py"
+      type: "code"
+      summary: "GET /api/integrations/opentrace/traces?agent_id=, GET /api/integrations/opentrace/traces/{trace_id}, GET /api/integrations/opentrace/traces/{trace_id}/waterfall, GET /api/integrations/opentrace/search. All return 503 on CircuitBreakerError."
+
+    - path: "src/backend/app/routers/integrations/openmesh.py"
+      type: "code"
+      summary: "GET /api/integrations/openmesh/topology, GET /api/integrations/openmesh/nodes/{node_id}, GET /api/integrations/openmesh/stats?period=."
+
+    - path: "src/backend/app/routers/integrations/openmind.py"
+      type: "code"
+      summary: "GET /api/integrations/openmind/graph?limit=&offset=, GET /api/integrations/openmind/entities/{entity_id}, GET /api/integrations/openmind/search?q=."
+
+    - path: "src/backend/app/routers/integrations/openshield.py"
+      type: "code"
+      summary: "GET /api/integrations/openshield/posture, GET /api/integrations/openshield/agents/{agent_id}, GET /api/integrations/openshield/violations?start=&end=."
+
+    # ---- Phase 2: Schemas ----
+    - path: "src/backend/app/schemas/opentrace.py"
+      type: "code"
+      summary: "TraceView, SpanView, TraceDetailView, TraceWaterfallView, TraceSearchParams."
+
+    - path: "src/backend/app/schemas/openmesh.py"
+      type: "code"
+      summary: "MeshNodeView, MeshEdgeView, MeshTopologyView, MeshStatsView."
+
+    - path: "src/backend/app/schemas/openmind.py"
+      type: "code"
+      summary: "KnowledgeNodeView, KnowledgeEdgeView, KnowledgeGraphView, EntityDetailView."
+
+    - path: "src/backend/app/schemas/openshield.py"
+      type: "code"
+      summary: "SecurityPostureView, AgentSecurityView, ViolationView."
+
+    # ---- Phase 2: Celery tasks ----
+    - path: "src/backend/app/tasks/integrations.py"
+      type: "code"
+      summary: "sync_opentrace, sync_openmesh, sync_openmind, sync_openshield (each per workspace_id, retries=2), sync_integrations_all (discovers all workspaces and dispatches), apply_xp_decay (1% decay to idle agents > 7 days). All instrument oav_celery_* metrics."
+
+    # ---- Phase 3: UE5 WebSocket ----
+    - path: "src/backend/app/routers/ue5_websocket.py"
+      type: "code"
+      summary: "WS /ws/ue5?workspace_id=&token=|api_key= — bidirectional relay. JWT auth for web clients, API key auth for UE5. 5 web->UE5 message types (focus_agent, select_agent, deselect_all, set_view_mode, sync_agents), 3 UE5->web types (agent_clicked, camera_moved, scene_ready), 2 backend-originated types (agent_state_changed, agent_spawned). On UE5 connect: sends initial sync_agents. GET /api/ue5/status (no auth). broadcast_agent_state_changed and broadcast_agent_spawned helpers for event pipeline integration."
+
+    # ---- Phase 3: CLI ----
+    - path: "src/cli/pyproject.toml"
+      type: "code"
+      summary: "oav-cli package config. Entry point: oav -> oav_cli.main:cli. Dependencies: click, httpx, websockets, rich, asciichartpy, tomli-w."
+
+    - path: "src/cli/oav_cli/main.py"
+      type: "code"
+      summary: "Click group entry point. Commands: status, events, metrics, leaderboard, topology, health, start, stop, config (group)."
+
+    - path: "src/cli/oav_cli/client.py"
+      type: "code"
+      summary: "OAVClient (sync httpx): reads url/api_key from ~/.oav/config.toml. Methods: get, post, put, health, list_agents, get_agent_stats, get_metrics, get_leaderboard, get_agent_graph, update_agent_status. stream_events async generator: connects to /ws/live with api_key query param (ADR-009)."
+
+    - path: "src/cli/oav_cli/config.py"
+      type: "code"
+      summary: "load_config/save_config/set_config_value/get_config_value using ~/.oav/config.toml. Python 3.11+ uses tomllib stdlib; earlier uses tomli."
+
+    - path: "src/cli/oav_cli/display.py"
+      type: "code"
+      summary: "Rich formatters: agents_table, agent_detail_panel, leaderboard_table, health_panel, event_row, status_badge."
+
+    - path: "src/cli/oav_cli/charts.py"
+      type: "code"
+      summary: "ASCII chart wrappers using asciichartpy: token_chart, cost_chart, xp_chart. Graceful fallback if asciichartpy not installed."
+
+    # ---- Phase 3: WebSocket update for CLI auth ----
+    - path: "src/backend/app/routers/websocket.py"
+      type: "code"
+      summary: "Modified /ws/live to accept api_key query param as alternative to JWT token (ADR-009). Added _resolve_workspace_from_api_key helper. Web clients use token=, CLI uses api_key=."
+
+    - path: "src/backend/app/services/websocket_manager.py"
+      type: "code"
+      summary: "Added oav_websocket_connections_active.inc() on connect() and .dec() on disconnect() for Prometheus gauge tracking."
+
+    - path: "src/backend/app/routers/events.py"
+      type: "code"
+      summary: "Added oav_events_ingested_total.inc() after accepting each ingested event."
+
+    # ---- Phase 4: Tests ----
+    - path: "src/backend/tests/test_circuit_breaker.py"
+      type: "test"
+      summary: "12 tests for CircuitBreaker state machine (CLOSED->OPEN->HALF_OPEN->CLOSED, rejection, recovery timeout, call wrapper) and Fernet encrypt/decrypt helpers."
+
+    - path: "src/backend/tests/test_integrations.py"
+      type: "test"
+      summary: "11 tests for integration config CRUD endpoints (list, upsert, replace, patch, delete, unknown product 400, invalid URL 422, health check, test connection, auth required)."
+
+    - path: "src/backend/tests/test_integration_services.py"
+      type: "test"
+      summary: "6 tests for integration service layer: cached returns, circuit breaker propagation, value error on unconfigured state."
+
+    - path: "src/backend/tests/test_metrics_endpoint.py"
+      type: "test"
+      summary: "4 tests for Prometheus /metrics endpoint: 200 OK, Prometheus format, no auth required, /api/health still works."
+
+    - path: "src/backend/tests/test_ue5_websocket.py"
+      type: "test"
+      summary: "3 tests for UE5 WebSocket: /api/ue5/status accessible, starts empty, no-auth rejection."
+
+    - path: "src/cli/tests/test_cli_commands.py"
+      type: "test"
+      summary: "14 tests for CLI commands using Click test runner and mocked OAVClient: health (ok, failure), status (list, empty, single), leaderboard (all_time, period flag), metrics, topology, config (set/show), start, stop."
+
+    # ---- Infrastructure ----
+    - path: "docker-compose.prod.yml"
+      type: "infrastructure"
+      summary: "Production compose: uses Dockerfile.prod for backend/frontend, password-protected Redis, named volumes, celery-worker and celery-beat services, OPENTRACE/OPENMESH/OPENMIND/OPENSHIELD env passthrough."
+
+    - path: "docker-compose.monitoring.yml"
+      type: "infrastructure"
+      summary: "Optional monitoring stack: Prometheus (scrapes /metrics from backend:8000) + Grafana. Run alongside main stack with -f flag."
+
+    - path: "deploy/prometheus/prometheus.yml"
+      type: "config"
+      summary: "Prometheus scrape config: 15s interval, scrapes oav-backend:8000/metrics."
+
+  implementation_notes:
+    - "cryptography package provides Fernet. KEY NOTE: If SECRET_KEY changes, all stored integration API keys become unreadable (InvalidToken). Document in deployment runbook: rotate integration keys after rotating SECRET_KEY."
+    - "Circuit breaker state is in-memory per process (ADR-007). Each worker process maintains independent circuit state. Acceptable for current single-backend deployment; may need Redis-backed state for multi-process production."
+    - "oav_websocket_connections_active gauge tracks only /ws/live connections via RoomWebSocketManager. /ws/ue5 connections are tracked separately but not yet in Prometheus (by design — UE5 is optional)."
+    - "CLI stream_events async generator connects to /ws/live with api_key query param. The backend now accepts both token= (JWT) and api_key= (API key) query params on /ws/live."
+    - "apply_xp_decay Celery task is scheduled every 24h (86400s). For exact midnight-UTC execution in production, replace with crontab(hour=0, minute=0) — requires celery[redis] with beat crontab support."
+    - "Integration service singletons (opentrace_service etc.) are module-level. Their circuit breaker state persists for the lifetime of the process. In tests that need isolation, use new service instances."
+    - "The /ws/ue5 endpoint is registered on the main app. UE5 authentication uses the existing APIKey model with bcrypt hash verification (same as X-API-Key header auth, max 50 key scan)."
+
+  blockers: []
+  dependencies_met: true
+
+  for_code_reviewer:
+    critical_paths:
+      - "app/core/integrations.py — CircuitBreaker correctness, Fernet key derivation safety"
+      - "app/routers/integrations/config.py — upsert logic (unique constraint handling), API key never leaked in response"
+      - "app/routers/websocket.py — api_key auth path for CLI, no regression on existing JWT path"
+      - "app/routers/ue5_websocket.py — authentication guards, relay direction logic"
+    security_review_items:
+      - "Fernet key derivation uses SHA-256 of SECRET_KEY — verify this is adequate or should use PBKDF2"
+      - "APIKey scan is capped at 50 keys to prevent DoS — verify this cap is enforced in new /ws/ue5 and /ws/live api_key paths"
+      - "Integration base_url validator accepts http:// (not only https://) — intentional for local dev; confirm this is acceptable"
+    test_coverage_gaps:
+      - "Integration router 503 paths not tested via API (only service layer tested) — acceptable for Sprint 3, add in QA phase"
+      - "UE5 WebSocket relay logic not tested end-to-end (requires two simultaneous WS connections) — CLI/E2E test recommended"

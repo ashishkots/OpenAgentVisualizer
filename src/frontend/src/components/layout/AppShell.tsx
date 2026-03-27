@@ -3,6 +3,7 @@ import { Suspense, lazy, useState } from 'react';
 import {
   LayoutDashboard,
   Globe,
+  Box,
   Network,
   Trophy,
   BarChart2,
@@ -12,30 +13,45 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
+  Puzzle,
+  Activity,
+  Share2,
+  BookOpen,
+  Shield,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { NotificationLayer } from '../gamification/NotificationLayer';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 
 // Lazy load pages
-const DashboardPage     = lazy(() => import('../../pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
-const VirtualWorldPage  = lazy(() => import('../../pages/VirtualWorldPage').then(m => ({ default: m.VirtualWorldPage })));
-const TopologyPage      = lazy(() => import('../../pages/TopologyPage').then(m => ({ default: m.TopologyPage })));
-const LeaderboardPage   = lazy(() => import('../../pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })));
-const AnalyticsPage     = lazy(() => import('../../pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
-const AlertsPage        = lazy(() => import('../../pages/AlertsPage').then(m => ({ default: m.AlertsPage })));
-const SessionsPage      = lazy(() => import('../../pages/SessionsPage').then(m => ({ default: m.SessionsPage })));
-const AgentDetailPage   = lazy(() => import('../../pages/AgentDetailPage').then(m => ({ default: m.AgentDetailPage })));
-const SettingsPage      = lazy(() => import('../../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const DashboardPage    = lazy(() => import('../../pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const VirtualWorldPage = lazy(() => import('../../pages/VirtualWorldPage').then(m => ({ default: m.VirtualWorldPage })));
+const World3DPage      = lazy(() => import('../../pages/World3DPage').then(m => ({ default: m.World3DPage })));
+const TopologyPage     = lazy(() => import('../../pages/TopologyPage').then(m => ({ default: m.TopologyPage })));
+const LeaderboardPage  = lazy(() => import('../../pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })));
+const AnalyticsPage    = lazy(() => import('../../pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const AlertsPage       = lazy(() => import('../../pages/AlertsPage').then(m => ({ default: m.AlertsPage })));
+const SessionsPage     = lazy(() => import('../../pages/SessionsPage').then(m => ({ default: m.SessionsPage })));
+const AgentDetailPage  = lazy(() => import('../../pages/AgentDetailPage').then(m => ({ default: m.AgentDetailPage })));
+const SettingsPage     = lazy(() => import('../../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const TraceExplorerPage = lazy(() => import('../../pages/TraceExplorerPage').then(m => ({ default: m.TraceExplorerPage })));
+const MeshTopologyPage  = lazy(() => import('../../pages/MeshTopologyPage').then(m => ({ default: m.MeshTopologyPage })));
+const KnowledgeGraphPage = lazy(() => import('../../pages/KnowledgeGraphPage').then(m => ({ default: m.KnowledgeGraphPage })));
+const SecurityPage      = lazy(() => import('../../pages/SecurityPage').then(m => ({ default: m.SecurityPage })));
 
 const NAV_ITEMS = [
   { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard'  },
-  { to: '/world',      icon: Globe,           label: 'World'       },
-  { to: '/topology',   icon: Network,         label: 'Topology'    },
-  { to: '/leaderboard',icon: Trophy,          label: 'Leaderboard' },
-  { to: '/analytics',  icon: BarChart2,       label: 'Analytics'   },
-  { to: '/alerts',     icon: Bell,            label: 'Alerts'      },
-  { to: '/sessions',   icon: Play,            label: 'Sessions'    },
+  { to: '/world',      icon: Globe,           label: 'World 2D'   },
+  { to: '/world3d',    icon: Box,             label: 'World 3D', desktopOnly: true },
+  { to: '/topology',   icon: Network,         label: 'Topology'   },
+] as const;
+
+const INTEGRATION_ITEMS = [
+  { to: '/traces',    icon: Activity,  label: 'Traces'    },
+  { to: '/mesh',      icon: Share2,    label: 'Mesh'      },
+  { to: '/knowledge', icon: BookOpen,  label: 'Knowledge' },
+  { to: '/security',  icon: Shield,    label: 'Security'  },
 ] as const;
 
 const BOTTOM_NAV_ITEMS = [
@@ -46,6 +62,13 @@ const BOTTOM_NAV_ITEMS = [
   { to: '/alerts',      icon: Bell,            label: 'Alerts'    },
 ] as const;
 
+const OTHER_NAV_ITEMS = [
+  { to: '/leaderboard', icon: Trophy,   label: 'Leaderboard' },
+  { to: '/analytics',   icon: BarChart2,label: 'Analytics'   },
+  { to: '/alerts',      icon: Bell,     label: 'Alerts'      },
+  { to: '/sessions',    icon: Play,     label: 'Sessions'    },
+] as const;
+
 function PageFallback() {
   return (
     <div className="flex items-center justify-center h-full">
@@ -54,10 +77,35 @@ function PageFallback() {
   );
 }
 
+function NavLink({ to, icon: Icon, label, isExpanded }: { to: string; icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>; label: string; isExpanded: boolean }) {
+  const location = useLocation();
+  const active = location.pathname === to || location.pathname.startsWith(to + '/');
+  return (
+    <Link
+      to={to}
+      className={clsx(
+        'flex items-center gap-3 px-2 py-2.5 rounded-lg text-sm transition-colors',
+        'min-h-[44px] focus-visible:ring-2 focus-visible:ring-oav-accent focus-visible:outline-none',
+        active
+          ? 'text-oav-accent bg-oav-accent/10 border-l-[3px] border-l-oav-accent'
+          : 'text-oav-muted hover:text-oav-text hover:bg-oav-surface-hover',
+      )}
+      aria-current={active ? 'page' : undefined}
+    >
+      <Icon className="w-5 h-5 shrink-0" aria-hidden={true} />
+      {isExpanded && <span className="font-medium truncate">{label}</span>}
+    </Link>
+  );
+}
+
 export function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
+  const isIntegrationsActive = INTEGRATION_ITEMS.some(
+    (item) => location.pathname === item.to || location.pathname.startsWith(item.to + '/'),
+  );
+  const [integrationsOpen, setIntegrationsOpen] = useState(isIntegrationsActive);
 
   const handleLogout = () => {
     localStorage.removeItem('oav_token');
@@ -95,39 +143,69 @@ export function AppShell() {
             onClick={() => setIsExpanded((v) => !v)}
             aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            {isExpanded ? (
-              <ChevronLeft className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
+            {isExpanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
         </div>
 
         {/* Nav items */}
-        <div className="flex-1 flex flex-col gap-1 px-2">
-          {NAV_ITEMS.map(({ to, icon: Icon, label }) => {
-            const active = location.pathname === to || location.pathname.startsWith(to + '/');
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={clsx(
-                  'flex items-center gap-3 px-2 py-2.5 rounded-lg text-sm transition-colors',
-                  'min-h-[44px] focus-visible:ring-2 focus-visible:ring-oav-accent focus-visible:outline-none',
-                  {
-                    'text-oav-accent bg-oav-accent/10 border-l-[3px] border-l-oav-accent': active,
-                    'text-oav-muted hover:text-oav-text hover:bg-oav-surface-hover': !active,
-                  },
-                )}
-                aria-current={active ? 'page' : undefined}
-              >
-                <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
-                {isExpanded && (
-                  <span className="font-medium truncate">{label}</span>
-                )}
-              </Link>
-            );
-          })}
+        <div className="flex-1 flex flex-col gap-1 px-2 overflow-y-auto">
+          {/* Primary nav */}
+          {NAV_ITEMS.map(({ to, icon, label }) => (
+            <NavLink key={to} to={to} icon={icon} label={label} isExpanded={isExpanded} />
+          ))}
+
+          {/* Integrations group */}
+          <div className="mt-1">
+            <button
+              onClick={() => setIntegrationsOpen((v) => !v)}
+              className={clsx(
+                'w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-sm transition-colors',
+                'min-h-[44px] focus-visible:ring-2 focus-visible:ring-oav-accent focus-visible:outline-none',
+                isIntegrationsActive
+                  ? 'text-oav-accent bg-oav-accent/10'
+                  : 'text-oav-muted hover:text-oav-text hover:bg-oav-surface-hover',
+              )}
+              aria-label="Integrations"
+              aria-expanded={integrationsOpen}
+            >
+              <Puzzle className="w-5 h-5 shrink-0" aria-hidden="true" />
+              {isExpanded && (
+                <>
+                  <span className="font-medium truncate flex-1 text-left">Integrations</span>
+                  <ChevronDown
+                    className={clsx(
+                      'w-4 h-4 shrink-0 transition-transform duration-200',
+                      integrationsOpen && 'rotate-180',
+                    )}
+                    aria-hidden="true"
+                  />
+                </>
+              )}
+            </button>
+
+            {/* Sub-items */}
+            {isExpanded && integrationsOpen && (
+              <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-oav-border/50 pl-2">
+                {INTEGRATION_ITEMS.map(({ to, icon, label }) => (
+                  <NavLink key={to} to={to} icon={icon} label={label} isExpanded={isExpanded} />
+                ))}
+              </div>
+            )}
+
+            {/* Collapsed: show individual icons */}
+            {!isExpanded && (
+              <div className="flex flex-col gap-0.5 mt-0.5">
+                {INTEGRATION_ITEMS.map(({ to, icon, label }) => (
+                  <NavLink key={to} to={to} icon={icon} label={label} isExpanded={false} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Other nav */}
+          {OTHER_NAV_ITEMS.map(({ to, icon, label }) => (
+            <NavLink key={to} to={to} icon={icon} label={label} isExpanded={isExpanded} />
+          ))}
         </div>
 
         {/* Bottom: settings + logout */}
@@ -162,7 +240,12 @@ export function AppShell() {
           <Routes>
             <Route path="/dashboard"     element={<DashboardPage />} />
             <Route path="/world"         element={<VirtualWorldPage />} />
+            <Route path="/world3d"       element={<World3DPage />} />
             <Route path="/topology"      element={<TopologyPage />} />
+            <Route path="/traces"        element={<TraceExplorerPage />} />
+            <Route path="/mesh"          element={<MeshTopologyPage />} />
+            <Route path="/knowledge"     element={<KnowledgeGraphPage />} />
+            <Route path="/security"      element={<SecurityPage />} />
             <Route path="/leaderboard"   element={<LeaderboardPage />} />
             <Route path="/analytics"     element={<AnalyticsPage />} />
             <Route path="/alerts"        element={<AlertsPage />} />

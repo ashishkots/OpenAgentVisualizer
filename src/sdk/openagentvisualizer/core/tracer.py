@@ -104,23 +104,27 @@ class OAVTracer:
         parent_agent_id: Optional[str] = None,
     ):
         task_id = str(uuid.uuid4())
-        extra: dict = {"task_id": task_id, "agent_name": name, "role": role}
+        # Sprint 3: agent_name and role are propagated to every event so that
+        # all OTLP span types carry the attributes needed by the OpenTrace and
+        # OpenMesh integrations (service.name, agent.name, agent.role).
+        base_extra: dict = {"task_id": task_id, "agent_name": name, "role": role}
+        started_extra = dict(base_extra)
         if parent_agent_id:
-            extra["parent_agent_id"] = parent_agent_id
+            started_extra["parent_agent_id"] = parent_agent_id
         self._emit(OAVEvent("agent.task.started", self.workspace_id, agent_id,
-                            session_id=session_id, extra_data=extra))
+                            session_id=session_id, extra_data=started_extra))
         start = time.perf_counter()
         try:
             result = func(*args, **kwargs)
             elapsed = time.perf_counter() - start
             self._emit(OAVEvent("agent.task.completed", self.workspace_id, agent_id,
                                 session_id=session_id,
-                                extra_data={"task_id": task_id, "duration_seconds": elapsed}))
+                                extra_data={**base_extra, "duration_seconds": elapsed}))
             return result
         except Exception as exc:
             self._emit(OAVEvent("agent.task.failed", self.workspace_id, agent_id,
                                 session_id=session_id,
-                                extra_data={"task_id": task_id, "error": str(exc)}))
+                                extra_data={**base_extra, "error": str(exc)}))
             raise
 
     async def _run_traced_async(
@@ -135,21 +139,25 @@ class OAVTracer:
         parent_agent_id: Optional[str] = None,
     ):
         task_id = str(uuid.uuid4())
-        extra: dict = {"task_id": task_id, "agent_name": name, "role": role}
+        # Sprint 3: agent_name and role are propagated to every event so that
+        # all OTLP span types carry the attributes needed by the OpenTrace and
+        # OpenMesh integrations (service.name, agent.name, agent.role).
+        base_extra: dict = {"task_id": task_id, "agent_name": name, "role": role}
+        started_extra = dict(base_extra)
         if parent_agent_id:
-            extra["parent_agent_id"] = parent_agent_id
+            started_extra["parent_agent_id"] = parent_agent_id
         self._emit(OAVEvent("agent.task.started", self.workspace_id, agent_id,
-                            session_id=session_id, extra_data=extra))
+                            session_id=session_id, extra_data=started_extra))
         start = time.perf_counter()
         try:
             result = await func(*args, **kwargs)
             elapsed = time.perf_counter() - start
             self._emit(OAVEvent("agent.task.completed", self.workspace_id, agent_id,
                                 session_id=session_id,
-                                extra_data={"task_id": task_id, "duration_seconds": elapsed}))
+                                extra_data={**base_extra, "duration_seconds": elapsed}))
             return result
         except Exception as exc:
             self._emit(OAVEvent("agent.task.failed", self.workspace_id, agent_id,
                                 session_id=session_id,
-                                extra_data={"task_id": task_id, "error": str(exc)}))
+                                extra_data={**base_extra, "error": str(exc)}))
             raise
