@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, BackgroundTasks, Query
+from starlette.requests import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, asc
 
@@ -10,6 +11,7 @@ import redis.asyncio as aioredis
 from app.core.database import get_db
 from app.core.dependencies import get_workspace_id
 from app.core.redis_client import get_redis as _get_redis_connection
+from app.core.rate_limiter import limiter, EVENT_INGEST_RATE
 from app.models.event import Event
 from app.services.event_pipeline import normalise_event, EventPipeline
 
@@ -22,7 +24,9 @@ async def get_redis() -> aioredis.Redis:
 
 
 @router.post("", status_code=202)
+@limiter.limit(EVENT_INGEST_RATE)
 async def ingest_event(
+    request: Request,
     payload: dict,
     background_tasks: BackgroundTasks,
     workspace_id: str = Depends(get_workspace_id),

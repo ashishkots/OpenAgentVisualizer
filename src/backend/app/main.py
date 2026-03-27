@@ -10,6 +10,7 @@ from app.core.security import hash_password
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.middleware.correlation import CorrelationIDMiddleware
+from app.core.rate_limiter import limiter
 
 # Import all models so Base.metadata is populated before create_all
 from app.models.user import User, Workspace, WorkspaceMember  # noqa: F401
@@ -69,6 +70,12 @@ async def seed_default_user() -> None:
 
 app = FastAPI(title="OpenAgentVisualizer API", version="3.0.0", lifespan=lifespan)
 
+app.state.limiter = limiter
+
+from slowapi import _rate_limit_exceeded_handler  # noqa: E402
+from slowapi.errors import RateLimitExceeded  # noqa: E402
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(CorrelationIDMiddleware)
 
 # ---- Prometheus metrics instrumentation ----
