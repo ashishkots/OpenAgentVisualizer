@@ -81,8 +81,11 @@ _logger = get_logger(__name__)
 async def lifespan(app: FastAPI):
     setup_logging()
     # Initialize DB tables (Alembic handles production; create_all for dev/test)
-    async with engine.begin() as conn:
-        await conn.run_sync(lambda c: Base.metadata.create_all(c, checkfirst=True))
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(lambda c: Base.metadata.create_all(c, checkfirst=True))
+    except Exception:
+        pass  # Tables already exist (asyncpg checkfirst race condition)
     # Warm up Redis pool (fixes race condition — single init here, not lazy)
     await get_redis()
     # Seed default user and workspace
