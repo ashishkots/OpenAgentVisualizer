@@ -22,6 +22,9 @@ from app.models.metrics import MetricsRaw, MetricsAgg  # noqa: F401
 from app.models.audit import AuditLog  # noqa: F401
 from app.models.achievement import Achievement  # noqa: F401
 from app.models.integration import IntegrationConfig  # noqa: F401
+from app.models.notification import Notification  # noqa: F401
+from app.models.invite import WorkspaceInvite  # noqa: F401
+from app.models.activity import ActivityFeed  # noqa: F401
 
 from app.routers import (
     auth,

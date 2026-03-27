@@ -6,6 +6,9 @@ from app.models.gamification import XPTransaction, Alert
 from app.models.audit import AuditLog
 from app.models.achievement import Achievement
 from app.models.integration import IntegrationConfig
+from app.models.notification import Notification
+from app.models.invite import WorkspaceInvite
+from app.models.activity import ActivityFeed
 
 __all__ = [
     "User", "Workspace", "WorkspaceMember", "APIKey",
@@ -16,4 +19,7 @@ __all__ = [
     "AuditLog",
     "Achievement",
     "IntegrationConfig",
+    "Notification",
+    "WorkspaceInvite",
+    "ActivityFeed",
 ]
