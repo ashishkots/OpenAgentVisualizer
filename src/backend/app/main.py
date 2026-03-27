@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text
+from sqlalchemy import select, text, func
 import uuid
 
 from app.core.database import engine, Base, AsyncSessionLocal, get_db
@@ -25,6 +25,14 @@ from app.models.integration import IntegrationConfig  # noqa: F401
 from app.models.notification import Notification  # noqa: F401
 from app.models.invite import WorkspaceInvite  # noqa: F401
 from app.models.activity import ActivityFeed  # noqa: F401
+from app.models.quest import Quest, AgentQuestProgress  # noqa: F401
+from app.models.skill import SkillTree, SkillNode, AgentSkill  # noqa: F401
+from app.models.wallet import Wallet, Transaction  # noqa: F401
+from app.models.shop import ShopItem, Inventory  # noqa: F401
+from app.models.tournament import Tournament, TournamentEntry  # noqa: F401
+from app.models.season import Season, SeasonalXP  # noqa: F401
+from app.models.team import Team, TeamMember  # noqa: F401
+from app.models.challenge import Challenge, ChallengeProgress  # noqa: F401
 
 from app.routers import (
     auth,
@@ -61,6 +69,8 @@ async def lifespan(app: FastAPI):
     await get_redis()
     # Seed default user and workspace
     await seed_default_user()
+    # Seed gamification data (quests, skills, shop items) if tables are empty
+    await seed_gamification_data()
     yield
     # Shutdown
     _logger.info("shutdown.initiated", event="graceful_shutdown_start")
@@ -83,6 +93,63 @@ async def seed_default_user() -> None:
         member = WorkspaceMember(workspace=ws, user=user, role="owner")
         db.add_all([user, ws, member])
         await db.commit()
+
+
+async def seed_gamification_data() -> None:
+    """Seed quests, skill trees/nodes, and shop items if tables are empty."""
+    from app.data.seed_quests import QUEST_SEEDS
+    from app.data.seed_skills import SKILL_TREE_SEEDS, SKILL_NODE_SEEDS
+    from app.data.seed_shop import SHOP_ITEM_SEEDS
+    from app.models.quest import Quest
+    from app.models.skill import SkillTree, SkillNode
+    from app.models.shop import ShopItem
+    from app.models.user import Workspace
+
+    async with AsyncSessionLocal() as db:
+        # Quests — use first workspace as owner for seed data
+        quest_count = await db.scalar(select(func.count(Quest.id)))
+        if quest_count == 0:
+            ws = await db.scalar(select(Workspace).limit(1))
+            if ws:
+                for q in QUEST_SEEDS:
+                    db.add(Quest(workspace_id=ws.id, **q))
+                await db.commit()
+                _logger.info("seed.quests", count=len(QUEST_SEEDS))
+
+        # Skill trees and nodes
+        tree_count = await db.scalar(select(func.count(SkillTree.id)))
+        if tree_count == 0:
+            tree_id_map: dict[str, str] = {}
+            for t in SKILL_TREE_SEEDS:
+                tree = SkillTree(**t)
+                db.add(tree)
+                await db.flush()
+                tree_id_map[t["name"]] = tree.id
+
+            # Build nodes, resolving parent references
+            node_id_map: dict[str, str] = {}
+            for n in SKILL_NODE_SEEDS:
+                tree_name = n.pop("tree_name")
+                parent_name = n.pop("parent_name")
+                node = SkillNode(
+                    tree_id=tree_id_map[tree_name],
+                    parent_id=node_id_map.get(parent_name) if parent_name else None,
+                    **n,
+                )
+                db.add(node)
+                await db.flush()
+                node_id_map[n["name"]] = node.id
+
+            await db.commit()
+            _logger.info("seed.skill_trees", trees=len(SKILL_TREE_SEEDS), nodes=len(SKILL_NODE_SEEDS))
+
+        # Shop items
+        item_count = await db.scalar(select(func.count(ShopItem.id)))
+        if item_count == 0:
+            for item in SHOP_ITEM_SEEDS:
+                db.add(ShopItem(**item))
+            await db.commit()
+            _logger.info("seed.shop_items", count=len(SHOP_ITEM_SEEDS))
 
 
 app = FastAPI(title="OpenAgentVisualizer API", version="3.0.0", lifespan=lifespan)
