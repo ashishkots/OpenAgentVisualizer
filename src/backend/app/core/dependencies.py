@@ -37,6 +37,13 @@ async def get_workspace_id(
     return member.workspace_id
 
 
+async def get_current_user_id(
+    current_user: User = Depends(get_current_user),
+) -> str:
+    """Return the authenticated user's ID as a plain string."""
+    return current_user.id
+
+
 async def get_workspace_id_from_api_key(
     x_api_key: str = Header(None, alias="X-API-Key"),
     db: AsyncSession = Depends(get_db),

@@ -28,6 +28,7 @@ celery_app = Celery(
         "app.tasks.graph",
         "app.tasks.achievements",
         "app.tasks.integrations",
+        "app.tasks.notifications",
     ],
 )
 

@@ -41,6 +41,7 @@ from app.routers.spans import router as spans_router
 from app.routers import integrations as integrations_router
 from app.routers import ue5_websocket
 from app.routers import admin as admin_router
+from app.routers import notifications as notifications_router
 from app.services.websocket_manager import manager as ws_manager
 from app.core.logging import get_logger
 
@@ -157,3 +158,4 @@ app.include_router(spans_router)
 app.include_router(integrations_router.router)
 app.include_router(ue5_websocket.router)
 app.include_router(admin_router.router)
+app.include_router(notifications_router.router)
