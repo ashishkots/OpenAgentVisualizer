@@ -1,0 +1,91 @@
+groups:
+  - name: oav.rules
+    rules:
+
+      # -----------------------------------------------------------------------
+      # HighErrorRate — >5% HTTP 5xx rate over a 5-minute window (critical)
+      # -----------------------------------------------------------------------
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP error rate"
+          description: >
+            More than 5% of HTTP requests are returning 5xx errors
+            (current value: {{ $value | humanizePercentage }}).
+
+      # -----------------------------------------------------------------------
+      # HighLatency — p99 request latency >1 s over a 5-minute window (warning)
+      # -----------------------------------------------------------------------
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p99 request latency"
+          description: >
+            99th-percentile request latency has exceeded 1 second
+            (current value: {{ $value | humanizeDuration }}).
+
+      # -----------------------------------------------------------------------
+      # WebSocketDrop — >10 WebSocket disconnects in 1 minute (warning)
+      # -----------------------------------------------------------------------
+      - alert: WebSocketDrop
+        expr: |
+          sum(increase(websocket_disconnects_total[1m])) > 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Elevated WebSocket disconnections"
+          description: >
+            More than 10 WebSocket connections were dropped in the last minute
+            (current value: {{ $value }}).
+
+      # -----------------------------------------------------------------------
+      # DiskUsageHigh — filesystem usage >80% for 10 minutes (warning)
+      # -----------------------------------------------------------------------
+      - alert: DiskUsageHigh
+        expr: |
+          (
+            node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}
+            - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}
+          )
+          /
+          node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}
+          > 0.80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk usage above 80%"
+          description: >
+            Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }}
+            is {{ $value | humanizePercentage }} full.
+
+      # -----------------------------------------------------------------------
+      # DLQBacklog — dead-letter queue depth >10 messages for 5 minutes (warning)
+      # -----------------------------------------------------------------------
+      - alert: DLQBacklog
+        expr: |
+          celery_queue_length{queue="dlq"} > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Dead-letter queue backlog growing"
+          description: >
+            The Celery dead-letter queue has more than 10 unprocessed messages
+            (current depth: {{ $value }}).
