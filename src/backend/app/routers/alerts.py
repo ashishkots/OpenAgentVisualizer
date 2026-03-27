@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
@@ -13,14 +13,21 @@ router = APIRouter(prefix="/api/alerts", tags=["alerts"])
 @router.get("", response_model=List[AlertRead])
 async def list_alerts(
     resolved: bool = False,
+    limit: int = Query(50, ge=1, le=200, description="Maximum number of alerts to return"),
+    offset: int = Query(0, ge=0, description="Number of alerts to skip"),
     workspace_id: str = Depends(get_workspace_id),
     db: AsyncSession = Depends(get_db),
 ):
+    """List alerts in the authenticated workspace with optional pagination."""
     result = await db.execute(
-        select(Alert).where(
+        select(Alert)
+        .where(
             Alert.workspace_id == workspace_id,
             Alert.resolved == resolved,
-        ).order_by(Alert.created_at.desc())
+        )
+        .order_by(Alert.created_at.desc())
+        .offset(offset)
+        .limit(limit)
     )
     return result.scalars().all()
 

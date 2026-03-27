@@ -51,7 +51,8 @@ async def replay_events(
     start: Optional[datetime] = Query(None, description="ISO 8601 start timestamp"),
     end: Optional[datetime] = Query(None, description="ISO 8601 end timestamp"),
     cursor: Optional[str] = Query(None, description="Event ID to paginate from"),
-    limit: int = Query(100, ge=1, le=500),
+    limit: int = Query(100, ge=1, le=500, description="Maximum number of events to return"),
+    offset: int = Query(0, ge=0, description="Number of events to skip (ignored when cursor is set)"),
     workspace_id: str = Depends(get_workspace_id),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
@@ -86,6 +87,9 @@ async def replay_events(
         if cursor_event and cursor_event.timestamp:
             # Fetch events strictly after the cursor event's timestamp
             query = query.where(Event.timestamp > cursor_event.timestamp)
+    elif offset:
+        # Offset-based pagination only applies when no cursor is provided
+        query = query.offset(offset)
 
     result = await db.execute(query)
     events = list(result.scalars().all())

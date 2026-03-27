@@ -41,13 +41,18 @@ async def create_agent(
 
 @router.get("", response_model=List[AgentRead])
 async def list_agents(
+    limit: int = Query(50, ge=1, le=200, description="Maximum number of agents to return"),
+    offset: int = Query(0, ge=0, description="Number of agents to skip"),
+    status: Optional[str] = Query(None, description="Filter agents by status"),
     workspace_id: str = Depends(get_workspace_id),
     db: AsyncSession = Depends(get_db),
 ) -> List[AgentRead]:
-    """List all agents in the authenticated workspace."""
-    result = await db.execute(
-        select(Agent).where(Agent.workspace_id == workspace_id)
-    )
+    """List agents in the authenticated workspace with optional pagination and status filter."""
+    query = select(Agent).where(Agent.workspace_id == workspace_id)
+    if status is not None:
+        query = query.where(Agent.status == status)
+    query = query.order_by(asc(Agent.created_at)).offset(offset).limit(limit)
+    result = await db.execute(query)
     return result.scalars().all()
 
 
